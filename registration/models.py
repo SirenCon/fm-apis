@@ -271,6 +271,21 @@ class Event(LookupTable):
         "order. Note that a billing address and buyer email is required "
         "to qualify for Square's Chargeback protection.",
     )
+    hasBadges = models.BooleanField(
+        default=True,
+        verbose_name="Produce attendee badge",
+        help_text="Disable if your event does not include attendee badges."
+    )
+    hasVolunteering = models.BooleanField(
+        default=True,
+        verbose_name="Accept volunteers",
+        help_text="Disable if your event does not accept public volunteers requests."
+    )
+    emailOptions = models.BooleanField(
+        default=True,
+        verbose_name="Email options",
+        help_text="Disable to remove the post-con survey and newsletter checkboxes."
+    )
     registrationEmail = models.CharField(
         max_length=200,
         verbose_name="Registration Email",

@@ -568,6 +568,9 @@ class EventAdmin(admin.ModelAdmin):
                     "collectAddress",
                     "collectBillingAddress",
                     "allowOnlineMinorReg",
+                    "hasBadges",
+                    "hasVolunteering",
+                    "emailOptions",
                 )
             },
         ),
