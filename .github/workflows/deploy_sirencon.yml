@@ -17,6 +17,7 @@ jobs:
         with:
           app-id: ${{ vars.WORKFLOW_TRIGGER_APP_ID }}
           private-key: ${{ secrets.WORKFLOW_TRIGGER_SSH_PRIVATE_KEY }}
+          owner: SirenCon
 
       - name: Invoke deployment workflow
         run: |
