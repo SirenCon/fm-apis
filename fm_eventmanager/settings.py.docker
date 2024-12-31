@@ -417,3 +417,5 @@ ENVIRONMENT_FLOAT = os.getenv('ENVIRONMENT_FLOAT', False)
 
 PRINT_RENDERER = os.getenv('PRINT_RENDERER', 'wkhtmltopdf')
 GOTENBERG_HOST = os.getenv('GOTENBERG_HOST', None)
+
+REPO_URL = os.getenv('REPO_URL', 'https://github.com/furthemore/APIS')
