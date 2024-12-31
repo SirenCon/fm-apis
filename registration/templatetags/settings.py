@@ -7,8 +7,8 @@ register = template.Library()
 
 
 @register.simple_tag
-def settings_value(name):
-    return getattr(settings, name, "")
+def settings_value(name, default=""):
+    return getattr(settings, name, default)
 
 
 @register.simple_tag

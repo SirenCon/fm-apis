@@ -46,7 +46,7 @@
 
 <footer>
   <div class="container footer">
-    {% settings_value 'ENVIRONMENT_NAME' %} - <a href="https://github.com/furthemore/APIS/tree/{% settings_value 'SENTRY_RELEASE' %}">{% settings_value 'SENTRY_RELEASE' %}</a>
+    {% settings_value 'ENVIRONMENT_NAME' %} - <a href="{% settings_value 'REPO_URL' 'https://github.com/furthemore/APIS' %}/tree/{% settings_value 'SENTRY_RELEASE' %}">{% settings_value 'SENTRY_RELEASE' %}</a>
   </div>
 </footer>
 
