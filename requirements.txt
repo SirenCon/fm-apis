@@ -22,6 +22,7 @@ paho-mqtt==1.6.1
 Pillow>=5.3
 psycopg2-binary==2.9.9
 PyJWT~=2.8.0
+responses==0.25.5
 respx==0.22.0
 sentry-sdk
 squareup==22.0.0.20220921
