@@ -8,7 +8,7 @@ import logging
 from django.test import TestCase
 import responses
 
-from registration.middleware.filebeat import FilebeatMiddleware
+from registration.middleware.logging import LoggingMiddleware
 from registration.utils.filebeat_logging_handler import FilebeatHandler
 
 
@@ -37,7 +37,7 @@ def _handle_filebeat_entry(request):
     return (200, headers, "{}")
 
 
-class TestFilebeatMiddleware(TestCase):
+class TestLoggingMiddleware(TestCase):
     def setUp(self):
         self._old_handlers = list(log.handlers)
 
@@ -82,7 +82,7 @@ class TestFilebeatMiddleware(TestCase):
         request.user = _FakeUser()
         request.return_value = _FakeResponse()
 
-        middleware = FilebeatMiddleware(request)
+        middleware = LoggingMiddleware(request)
         response = middleware(request)
 
         self.assertEqual(request.return_value, response)

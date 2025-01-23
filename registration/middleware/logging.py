@@ -6,9 +6,9 @@ from django.contrib.auth.models import AnonymousUser
 log = logging.getLogger("registration")
 
 
-class FilebeatMiddleware:
+class LoggingMiddleware:
     """
-    Sends request metrics to a Filebeat server.
+    Logs request information to the `registration` logger.
     """
     def __init__(self, get_response):
         self.get_response = get_response
