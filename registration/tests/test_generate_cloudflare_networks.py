@@ -22,7 +22,7 @@ def _get_ipv6_networks(request):
     return (status_code, headers, "2400:cb00::/32")
 
 
-class TestCloudalreMiddleware(TestCase):
+class TestCloudflareMiddleware(TestCase):
     @responses.activate
     @patch(path_patch)
     def test_generates_to_file(self, patched):

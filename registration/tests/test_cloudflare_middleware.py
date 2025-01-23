@@ -6,7 +6,7 @@ from registration.middleware.cloudflare import CloudflareMiddleware
 from registration.middleware.networks import IPV4_NETWORKS, IPV6_NETWORKS
 
 
-class TestCloudalreMiddleware(TestCase):
+class TestCloudflareMiddleware(TestCase):
     def test_middleware_skips_local_network(self):
         request = MagicMock()
         request.META = {
