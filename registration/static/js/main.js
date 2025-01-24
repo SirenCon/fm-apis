@@ -71,3 +71,11 @@ $(document).ready(function (e) {
         }
     });
 });
+
+$(document).ready(function (e) {
+    contentHolderChildren = $("#content-holder").children().length;
+
+    if (contentHolderChildren > 1) {
+        $("body > footer").css("padding", "1rem");
+    }
+});
