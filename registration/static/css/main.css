@@ -204,3 +204,8 @@ body > footer {
     color: white;
     font-weight: bold;
 }
+
+.link-box {
+    display: flex;
+    justify-content: space-between;
+}
