@@ -45,8 +45,10 @@ class LoggingMiddleware:
         # Get SSL info
         is_ssl = request.is_secure()
 
-        if is_ssl:
+        if is_ssl and "werkzeug.socket" in request.environ:
             tls_version = request.environ["werkzeug.socket"].version()
+        elif is_ssl:
+            tls_version = "UNKNOWN"
         else:
             tls_version = None
 
