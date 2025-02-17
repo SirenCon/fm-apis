@@ -576,6 +576,7 @@ class EventAdmin(admin.ModelAdmin):
                     "hasBadges",
                     "hasVolunteering",
                     "emailOptions",
+                    "multiAttendeeCarts",
                 )
             },
         ),
