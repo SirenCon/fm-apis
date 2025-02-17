@@ -39,7 +39,7 @@ class FilebeatHandler(logging.Handler):
         }
 
         try:
-            response = requests.post(self._endpoint_url, headers=headers, data=data_to_send)
+            response = requests.post(self._endpoint_url, headers=headers, data=data_to_send, timeout=2)
             response.raise_for_status()
         except Exception as exc:
             sentry_sdk.capture_exception(exc)
