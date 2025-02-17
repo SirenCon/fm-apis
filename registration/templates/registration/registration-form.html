@@ -49,7 +49,11 @@
 
         {% show_attendee_form event=event emailOptions=event.emailOptions %}
 
+        {% if level_count > 1 %}
         <h3>Select your registration options and level.</h3>
+        {% else %}
+        <h3>Select your registration options.</h3>
+        {% endif %}
 
         {% if event.hasBadges or event.hasVolunteering %}
         <hr>
@@ -106,14 +110,22 @@
 
   <script type="text/html" id="levelTemplate">
     <div id="levelTemplateColumn" class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
+      {% if level_count != 1 %}
       <div class="panel price">
+      {% else %}
+      <div class="panel">
+      {% endif %}
         <div class="panel-heading  text-center">
           <h3 data-content="name"></h3>
         </div>
         <div class="panel-body text-center">
           <p class="lead" style="font-size:40px"><strong data-content="price"></strong></p>
         </div>
+        {% if level_count > 1 %}
         <div class="panel-footer">
+        {% else %}
+        <div class="panel-footer" style="display: none;">
+        {% endif %}
           <a class="btn btn-lg btn-block btn-danger selectLevel" data-id="levelId">Select</a>
           <a class="btn btn-default btn-block changeLevel">Change Level?</a>
         </div>

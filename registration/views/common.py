@@ -189,6 +189,7 @@ def index(request):
         return render(request, "registration/docs/no-event.html")
 
     tz = timezone.get_current_timezone()
+    now = timezone.now()
     today = tz.localize(datetime.now())
     discount = request.session.get("discount")
     if discount:
@@ -196,7 +197,15 @@ def index(request):
         if discount.count() > 0:
             discount = discount.first()
 
-    context = {"event": event, "discount": discount}
+    level_count = PriceLevel.objects.filter(
+        public=True, startDate__lte=now, endDate__gte=now
+    ).order_by("basePrice").count()
+
+    context = {
+        "event": event,
+        "discount": discount,
+        "level_count": level_count,
+    }
 
     if event.websiteUrl:
         context["homeRedirect"] = event.websiteUrl
