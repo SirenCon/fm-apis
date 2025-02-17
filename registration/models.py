@@ -286,6 +286,11 @@ class Event(LookupTable):
         verbose_name="Email options",
         help_text="Disable to remove the post-con survey and newsletter checkboxes."
     )
+    multiAttendeeCarts = models.BooleanField(
+        default=True,
+        verbose_name="Multiple attendees in cart",
+        help_text="Disable if your event only supports single attendees per order."
+    )
     registrationEmail = models.CharField(
         max_length=200,
         verbose_name="Registration Email",
