@@ -134,6 +134,8 @@ def saveCart(cart):
 
     event = Event.objects.get(name=evt)
 
+    volDepts = pda.get("volDepts", [])
+
     attendee = Attendee(
         preferredName=pda.get("preferredName", ""),
         firstName=pda["firstName"],
@@ -142,8 +144,8 @@ def saveCart(cart):
         email=pda["email"],
         birthdate=birthdate,
         emailsOk=bool(pda["emailsOk"]),
-        volunteerContact=len(pda["volDepts"]) > 0,
-        volunteerDepts=pda["volDepts"],
+        volunteerContact=len(volDepts) > 0,
+        volunteerDepts=volDepts,
         surveyOk=bool(pda["surveyOk"]),
         aslRequest=bool(pda["asl"]),
     )
@@ -162,7 +164,12 @@ def saveCart(cart):
             )
     attendee.save()
 
-    badge = Badge(badgeName=pda["badgeName"], event=event, attendee=attendee, signature_svg=pda.get("signature_svg"), signature_bitmap=pda.get("signature_bitmap"))
+    if pda.get("badgeName") is not None:
+        badgeName = pda["badgeName"]
+    else:
+        badgeName = attendee.preferredName or attendee.firstName
+
+    badge = Badge(badgeName=badgeName, event=event, attendee=attendee, signature_svg=pda.get("signature_svg"), signature_bitmap=pda.get("signature_bitmap"))
     badge.save()
 
     priceLevel = PriceLevel.objects.get(id=int(pdp["id"]))
