@@ -56,8 +56,10 @@
         <br/>
 
         <br/>
-        <a class="btn btn-primary" id="addAnother">Add Another Attendee</a> <a class="btn" id="cancel">Cancel
-        Registration</a>
+        {% if event.multiAttendeeCarts %}
+        <a class="btn btn-primary" id="addAnother">Add Another Attendee</a>
+        {% endif %}
+        <a class="btn" id="cancel">Cancel Registration</a>
 
         <hr/>
 
