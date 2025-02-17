@@ -158,7 +158,9 @@
 
         <input type="hidden" name="birthDate" id="birthDate" value="{{attendee.birthdate|date:"Y-m-d"}}{{ attendee.dob }}">
 
+        {% if SC_FALSE %}
         <p><button class="btn btn-link btn-sm" data-toggle="modal" data-target="#ageModal">Why do we need this?</button></p>
+        {% endif %}
     </div>
     <div class="col-sm-offset-3 help-block with-errors" style="padding-left:15px;"></div>
 </div>

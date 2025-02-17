@@ -118,6 +118,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'maintenance_mode.context_processors.maintenance_mode',
                 'registration.context_processors.square_environment',
+                'registration.context_processors.sirencon',
                 'django_admin_env_notice.context_processors.from_settings',
             ],
         },
