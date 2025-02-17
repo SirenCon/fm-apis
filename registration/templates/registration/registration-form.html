@@ -309,8 +309,10 @@
           var container = $("<div id='optionsContainer' class='col-xs-12 col-sm-6 col-md-8 col-lg-8'><h4>Level Options</h4><hr/><div class='form-group'><div class='col-sm-12'>" + description + "</div></div></div>");
           $("#levelContainer").append(container);
           $.each(data, function (key, val) {
-              if (val.value == "0.00") {
+              if (val.value == "0.00" && val.displayFreeLabel) {
                   var price = " (Free) ";
+              } else if (val.value == "0.00") {
+                  var price = " ";
               } else {
                   var price = " (+$" + val.value + ") "
               }
@@ -341,7 +343,7 @@
                               'name': val.name + " " + price + image,
                               'id': "option_" + val.id
                           }, {append: true});
-                          if (val.value == "0.00") {
+                          if (val.value == "0.00" && val.autoCheckFree) {
                               $("#option_" + val.id).prop('checked', true);
                           }
                           break;

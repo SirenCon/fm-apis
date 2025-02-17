@@ -82,6 +82,16 @@ class PriceLevelOption(models.Model):
     optionExtraType2 = models.CharField(max_length=100, blank=True)
     optionExtraType3 = models.CharField(max_length=100, blank=True)
     optionImage = models.ImageField(upload_to=content_file_name, blank=True, null=True)
+    autoCheckFree = models.BooleanField(
+        default=True,
+        verbose_name="Auto-select free",
+        help_text="Disable to prevent the option from being autos-elected if it's free.",
+    )
+    displayFreeLabel = models.BooleanField(
+        default=True,
+        verbose_name="Display free text",
+        help_text="Disable if the \"Free\" label should not be shown.",
+    )
     required = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     rank = models.IntegerField(default=0)
