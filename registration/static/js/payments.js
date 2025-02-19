@@ -116,6 +116,27 @@ document.addEventListener('DOMContentLoaded', async function () {
         return errorCodes.join(', ')
     }
 
+    function getPaymentErrorElement(response) {
+        if (response.reason && response.reason.apisError) {
+            return `<p>Unable to process registration: ${response.reason.apisError}`;
+        }
+
+        let message;
+        try {
+            const errorCodes = formatSquareErrors(response.reason.errors);
+            message = `<p>Payment error: payment failed for the following reasons:` +
+                `<br><span class="error-code">${errorCodes}</span>.<br>  Please check your payment details `+
+                `carefully and try again.</p>`;
+
+        } catch (e) {
+            message = `<p>Sorry, your payment failed for a mysterious reason. If the problem persists, please ` +
+                `contact <a href="mailto:${EVENT_REGISTRATION_EMAIL}">${EVENT_REGISTRATION_EMAIL}</a> for assistance.</p>`;
+            message += e;
+        }
+
+        return message;
+    }
+
     async function handlePaymentMethodSubmission(event, paymentMethod) {
         event.preventDefault();
         hidePaymentResults();
@@ -140,19 +161,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 displayPaymentResults('SUCCESS', '');
                 window.location = URL_REGISTRATION_DONE;
             } else {
-                let message;
-                try {
-                    const errorCodes = formatSquareErrors(paymentResults.reason.errors);
-                    message = `<p>Payment error: payment failed for the following reasons:` +
-                        `<br><span class="error-code">${errorCodes}</span>.<br>  Please check your payment details `+
-                        `carefully and try again.</p>`;
-
-                } catch (e) {
-                    message = `<p>Sorry, your payment failed for a mysterious reason. If the problem persists, please ` +
-                        `contact <a href="mailto:${EVENT_REGISTRATION_EMAIL}">${EVENT_REGISTRATION_EMAIL}</a> for assistance.</p>`;
-                    message += e;
-                }
-
+                const message = getPaymentErrorElement(paymentResults);
                 displayPaymentResults('FAILURE', message);
                 console.log(paymentResults.reason);
             }
@@ -168,6 +177,25 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error(err.message);
         }
     }
+
+    const donationField = document.getElementById('donateOrg');
+    donationField.addEventListener('invalid', function (event) {
+        if (!event.isTrusted) {
+            return;
+        }
+
+        const value = event.target.value;
+
+        if (isNaN(value)) {
+            return;
+        }
+
+        if (Number(value) >= 1) {
+            return;
+        }
+
+        event.target.setAttribute('data-error', 'minimum $1 donation is required.');
+    });
 
     const cardButton = document.getElementById('checkout');
     cardButton.addEventListener('click', async function (event) {

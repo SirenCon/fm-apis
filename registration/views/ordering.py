@@ -308,6 +308,10 @@ def checkout(request):
 
     if porg < 0:
         porg = 0
+
+    if porg < 1:
+        return common.abort(400, {"apisError": "A minimum of $1 donation is required."})
+
     if pcharity < 0:
         pcharity = 0
 
