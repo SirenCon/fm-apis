@@ -96,6 +96,12 @@ class PriceLevelOption(models.Model):
         verbose_name="Display free text",
         help_text="Disable if the \"Free\" label should not be shown.",
     )
+    quantity = models.IntegerField(
+        null=True,
+        default=None,
+        verbose_name="Quantity",
+        help_text="Limits the amount that can be sold.",
+    )
     required = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     rank = models.IntegerField(default=0)

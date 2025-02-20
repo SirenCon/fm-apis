@@ -309,7 +309,11 @@
           var container = $("<div id='optionsContainer' class='col-xs-12 col-sm-6 col-md-8 col-lg-8'><h4>Level Options</h4><hr/><div class='form-group'><div class='col-sm-12'>" + description + "</div></div></div>");
           $("#levelContainer").append(container);
           $.each(data, function (key, val) {
-              if (val.value == "0.00" && val.displayFreeLabel) {
+              const isSoldOut = val.limited_availability && val.sold_out;
+
+              if (isSoldOut) {
+                var price = " (Sold Out)"
+              } else if (val.value == "0.00" && val.displayFreeLabel) {
                   var price = " (Free) ";
               } else if (val.value == "0.00") {
                   var price = " ";
@@ -327,12 +331,15 @@
                   required = "required";
               }
               if (val.active) {
+                  var appended = false;
+
                   switch (val.type) {
                       case "plaintext":
                           var template = $("#optionPlainTextTemplate");
                           $("#optionsContainer").loadTemplate(template, {
                               'content': val.description
                           }, {append: true});
+                          appended = true;
                           break;
                       case "bool":
                           var template = $("#optionBoolTemplate");
@@ -343,7 +350,8 @@
                               'name': val.name + " " + price + image,
                               'id': "option_" + val.id
                           }, {append: true});
-                          if (val.value == "0.00" && val.autoCheckFree) {
+                          appended = true;
+                          if (val.value == "0.00" && val.autoCheckFree && !isSoldOut) {
                               $("#option_" + val.id).prop('checked', true);
                           }
                           break;
@@ -356,6 +364,7 @@
                               'name': val.name + " " + price + image,
                               'id': "option_" + val.id
                           }, {append: true});
+                          appended = true;
                           break;
                       case "string":
                           var template = $("#optionStringTemplate");
@@ -368,6 +377,7 @@
                               'id': "option_" + val.id,
                               'placeholder': placeholder,
                           }, {append: true});
+                          appended = true;
                           break;
                       case "Jersey":
                           break;
@@ -389,7 +399,18 @@
                               'id': "option_" + val.id,
                               'options': options
                           }, {append: true});
+                          appended = true;
                           break;
+                  }
+
+                  if (isSoldOut && appended) {
+                    const element = $("#optionsContainer").children().last()
+
+                    const label = element.find("label.col-sm-3.control-label")
+                    label.css("text-decoration", "line-through");
+
+                    const input = element.find("div.col-sm-9").find("input");
+                    input.prop("disabled", true);
                   }
               }
           });

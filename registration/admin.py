@@ -1535,6 +1535,7 @@ class PriceLevelOptionAdmin(admin.ModelAdmin):
         "rank",
         "optionPrice",
         "optionExtraType",
+        "quantity",
         "autoCheckFree",
         "displayFreeLabel",
         "required",

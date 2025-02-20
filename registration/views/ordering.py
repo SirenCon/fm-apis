@@ -10,6 +10,7 @@ import registration.emails
 from registration.models import *
 from registration.payments import charge_payment
 
+from .attendee import check_if_option_is_sold_out
 from . import cart, common
 
 logger = logging.getLogger(__name__)
@@ -277,6 +278,24 @@ def checkout(request):
 
     if not cart_items and not order_items:
         return common.abort(400, "There is nothing in your cart!")
+
+    for cart in (cart_items or []):
+        postData = json.loads(cart.formData)
+        priceLevelId = int(postData["priceLevel"]["id"])
+        priceLevel = PriceLevel.objects.get(id=priceLevelId)
+
+        for option in priceLevel.priceLevelOptions.all():
+            if option.quantity is None:
+                continue
+
+            if not check_if_option_is_sold_out(option):
+                continue
+
+            return common.abort(400, {
+                "apisError": f"{option.optionName} is sold out. Please remove it from your cart."
+            })
+
+    return common.abort(400, {"apisError": "passed!"})
 
     if subtotal == 0:
         status, message, order = doZeroCheckout(discount, cart_items, order_items)
