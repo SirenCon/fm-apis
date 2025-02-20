@@ -281,10 +281,11 @@ def checkout(request):
 
     for cart in (cart_items or []):
         postData = json.loads(cart.formData)
-        priceLevelId = int(postData["priceLevel"]["id"])
-        priceLevel = PriceLevel.objects.get(id=priceLevelId)
+        priceLevel = postData["priceLevel"]
 
-        for option in priceLevel.priceLevelOptions.all():
+        for postDataOption in priceLevel["options"]:
+            option = PriceLevelOption.objects.get(id=int(postDataOption["id"]))
+
             if option.quantity is None:
                 continue
 
@@ -294,8 +295,6 @@ def checkout(request):
             return common.abort(400, {
                 "apisError": f"{option.optionName} is sold out. Please remove it from your cart."
             })
-
-    return common.abort(400, {"apisError": "passed!"})
 
     if subtotal == 0:
         status, message, order = doZeroCheckout(discount, cart_items, order_items)
