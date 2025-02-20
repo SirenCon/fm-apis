@@ -19,5 +19,6 @@ venv3/
 .env
 htmlcov/
 .DS_Store
+pgdb/
 node_modules/
 .python-version
