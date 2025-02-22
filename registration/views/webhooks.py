@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 def square_webhook(request):
     square_signature = request.headers.get("X-Square-HMACSHA256-Signature")
-    notification_url = request.build_absolute_uri()
+    notification_url = getattr(settings, "SQUARE_WEBHOOK_URL", request.build_absolute_uri())
 
     signature_valid = is_valid_webhook_event_signature(
         request.body.decode("utf-8"),
