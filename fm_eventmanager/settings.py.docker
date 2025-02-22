@@ -362,6 +362,7 @@ SQUARE_LOCATION_ID = os.environ['SQUARE_LOCATION_ID']
 SQUARE_CURRENCY = os.getenv('SQUARE_CURRENCY', 'USD')
 SQUARE_ENVIRONMENT = os.getenv('SQUARE_ENVIRONMENT', 'production')  # Or "sandbox"
 SQUARE_WEBHOOK_SIGNATURE_KEY = os.getenv('SQUARE_WEBHOOK_SIGNATURE_KEY', 'unset')
+SQUARE_WEBHOOK_URL = os.getenv('SQUARE_WEBHOOK_URL', '')
 
 # Sandbox values - DO NOT check in production credentials
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
