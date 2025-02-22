@@ -46,7 +46,7 @@ def do_checkout(
             order.billingAddress1 = billingData["address1"]
             order.billingAddress2 = billingData["address2"]
             order.billingCity = billingData["city"]
-            order.billingState = billingData["state"]
+            order.billingState = billingData["state"] or ""
             order.billingCountry = billingData["country"]
             order.billingEmail = billingData["email"]
             order.billingPostal = billingData["postal"]
