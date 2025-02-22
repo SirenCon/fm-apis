@@ -121,18 +121,21 @@ def add_new_staff(request):
     attendee = Attendee(
         firstName=pda["firstName"],
         lastName=pda["lastName"],
-        address1=pda["address1"],
-        address2=pda["address2"],
-        city=pda["city"],
-        state=pda["state"],
-        country=pda["country"],
-        postalCode=pda["postal"],
         phone=pda["phone"],
         email=pda["email"],
         birthdate=birthdate,
         emailsOk=True,
         surveyOk=False,
     )
+
+    if event.collectAddress:
+        attendee.address1 = pda["address1"]
+        attendee.address2 = pda["address2"]
+        attendee.city = pda["city"]
+        attendee.state = pda["state"]
+        attendee.country = pda["country"]
+        attendee.postalCode = pda["postal"]
+
     attendee.save()
 
     badge = Badge(attendee=attendee, event=event, badgeName=pda["badgeName"])
