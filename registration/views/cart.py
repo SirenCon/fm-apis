@@ -164,7 +164,7 @@ def saveCart(cart):
             )
     attendee.save()
 
-    if pda.get("badgeName") is not None:
+    if event.hasBadges:
         badgeName = pda["badgeName"]
     else:
         badgeName = attendee.preferredName or attendee.firstName

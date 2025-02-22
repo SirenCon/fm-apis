@@ -138,7 +138,12 @@ def add_new_staff(request):
 
     attendee.save()
 
-    badge = Badge(attendee=attendee, event=event, badgeName=pda["badgeName"])
+    if event.hasBadges:
+        badgeName = pda["badgeName"]
+    else:
+        badgeName = attendee.preferredName or attendee.firstName
+
+    badge = Badge(attendee=attendee, event=event, badgeName=badgeName)
     badge.save()
 
     staff_from_post_data(pds, attendee, event, None)
