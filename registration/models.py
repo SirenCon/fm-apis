@@ -446,7 +446,7 @@ class Attendee(models.Model):
     state = models.CharField(max_length=200, blank=True)
     country = models.CharField(max_length=200, blank=True)
     postalCode = models.CharField(max_length=20, blank=True)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=50)
     email = models.CharField(max_length=200)
     birthdate = models.DateField()
     emailsOk = models.BooleanField(default=False)
@@ -460,7 +460,7 @@ class Attendee(models.Model):
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
     parentFirstName = models.CharField(max_length=200, blank=True)
     parentLastName = models.CharField(max_length=200, blank=True)
-    parentPhone = models.CharField(max_length=20, blank=True)
+    parentPhone = models.CharField(max_length=50, blank=True)
     parentEmail = models.CharField(max_length=200, blank=True)
     aslRequest = models.BooleanField(default=False)
 
