@@ -34,6 +34,7 @@
 
         {% show_attendee_form event=event emailOptions=event.emailOptions %}
 
+        {% if event.hasBadges %}
         <div class="form-group">
           <label for="far" class="col-sm-3 control-label">Badge Name</label>
           <div class="col-sm-9">
@@ -41,6 +42,7 @@
                    class="form-control form-control-text"/>
           </div>
         </div>
+        {% endif %}
 
         <p>&nbsp;</p>
         <h2>Business Information</h2>
@@ -98,6 +100,7 @@
           <div class="col-sm-offset-3 help-block with-errors" style=" padding-left:15px;"></div>
         </div>
 
+        {% if event.charity %}
         <div class="form-group">
           <label for="charityRaffle" class="col-sm-3 control-label">I have these items to donate to the Charity
             Raffle</label>
@@ -109,6 +112,7 @@
             charity onsite for additional information and receipts. Consult your tax professional for guidance.
           </div>
         </div>
+        {% endif %}
 
         <p>&nbsp;</p>
         <h2>Placement Options</h2>
