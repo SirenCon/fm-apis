@@ -11,7 +11,11 @@
   <link href="{% static 'css/main.css' %}" rel="stylesheet" media="screen">
   <link href="{% static 'css/bootstrap-formhelpers.css' %}" rel="stylesheet" media="screen">
   <link href="{% static 'css/bootstrap-datepicker.css' %}" rel="stylesheet" media="screen">
+  {% if is_production %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
+  {% else %}
+  <link rel="shortcut icon" type="image/png" href="{% static 'favicon_blue.ico' %}">
+  {% endif %}
   <script
       src="https://browser.sentry-cdn.com/8.51.0/bundle.min.js"
       integrity="sha384-UOoDPZa8zKe2+XR6MQctS46ElT1RITQSH47kT4eyprRgzqtUHu7xEGJCPQFZgre6"

@@ -11,7 +11,11 @@
   <title>APIS Register</title>
 
   <link rel="stylesheet" href="{% static 'admin.css' %}" />
+  {% if is_production %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
+  {% else %}
+  <link rel="shortcut icon" type="image/png" href="{% static 'favicon_blue.ico' %}">
+  {% endif %}
 
   <script>
     const APIS_CONFIG = {{ settings|safe }};

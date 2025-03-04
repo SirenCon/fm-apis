@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import os
 import uuid
 
 from django import template
@@ -65,3 +66,8 @@ def event_start_date(event, freeze_time=None):
 @register.simple_tag
 def idempotency_key():
     return str(uuid.uuid4())
+
+
+@register.simple_tag
+def is_production():
+    return os.environ.get("NODE_ENVIRONMENT") == "production"
