@@ -32,7 +32,7 @@
         <h1>Dealer Registration - {{ event }}</h1>
         <p>Welcome to the registration system. To continue, enter your information below.</p>
 
-        {% show_attendee_form event=event emailOptions=event.emailOptions %}
+        {% show_attendee_form event=event emailOptions=event.emailOptions isDealerForm=True %}
 
         {% if event.hasBadges %}
         <div class="form-group">
