@@ -61,7 +61,7 @@
             contact <a href="mailto:{{ event.dealerEmail }}">{{ event.dealerEmail }}</a>. Required fields are marked
             with a red asterisk (<span style="color:red;">*</span>).</p>
 
-          {% show_attendee_form attendee=badge.attendee emailOptions=True event=event %}
+          {% show_attendee_form attendee=badge.attendee emailOptions=event.emailOptions event=event %}
 
           <div class="form-group">
             <label for="add1" class="col-sm-3 control-label">Badge Name <span style="color:red;">*</span></label>

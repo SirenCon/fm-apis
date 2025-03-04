@@ -49,7 +49,7 @@
           with a red asterisk (<span style="color:red;">*</span>).</p>
         <hr>
 
-        {% show_attendee_form event=event emailOptions=True attendee=request.GET %}
+        {% show_attendee_form event=event emailOptions=event.emailOptions attendee=request.GET %}
 
 
         <div class="form-group">
