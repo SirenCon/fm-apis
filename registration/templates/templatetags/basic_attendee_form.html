@@ -148,10 +148,15 @@
         </div>
 
         <div class="col-sm-3">
-          <select autocomplete="bday-day" class="form-control" disabled id="bday" name="bday" required>
+          <select autocomplete="bday-day" class="form-control" id="bday" name="bday" required>
               <option value="">Day</option>
             {% if attendee.birthdate %}
               <option value="{{attendee.birthdate|date:"d"}}" selected>{{attendee.birthdate|date:"d"}}</option>
+            {% else %}
+                <option value="1" selected>1</option>
+              {% for i in 33|date_day_range %}
+                  <option value="{{i}}">{{i}}</option>
+              {% endfor %}
             {% endif %}
           </select>
         </div>

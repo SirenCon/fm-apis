@@ -52,3 +52,8 @@ def venue_country(event):
         return event.venue.country
     else:
         return ""
+
+
+@register.filter(name="date_day_range")
+def date_day_range(number):
+    return range(2, number)
