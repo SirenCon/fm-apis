@@ -5,6 +5,7 @@ fm_eventmanager/settings.py
 fm_eventmanager/settings.py.bak
 ^static/
 venv/
+.venv/
 db.sqlite3
 test-db.sqlite3
 test-db.sqlite3-journal
