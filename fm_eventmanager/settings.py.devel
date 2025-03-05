@@ -148,6 +148,14 @@ DATABASES = {
     }
 }
 
+# Path to the local postgres database to manage.
+#
+# Used as the default value for --db-path in:
+#   - python manage.py make_db
+#   - python manage.py start_db
+#   - python manage.py stop_db
+PGDB_PATH = ''
+
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 

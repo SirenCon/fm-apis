@@ -10,8 +10,9 @@ class Command(BaseCommand):
     help = "Stops the development postgresql database."
 
     def add_arguments(self, parser):
-        base_dir = Path(settings.BASE_DIR)
-        db_dir = (base_dir / "pgdb").absolute()
+        if not (db_dir := getattr(settings, "PGDB_PATH")):
+            base_dir = Path(settings.BASE_DIR)
+            db_dir = (base_dir / "pgdb").absolute()
 
         parser.add_argument(
             "--db-path",
