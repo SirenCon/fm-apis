@@ -47,7 +47,7 @@
           with a red asterisk (<span style="color:red;">*</span>).</p>
         <hr>
 
-        {% show_attendee_form event=event emailOptions=event.emailOptions %}
+        {% show_attendee_form event=event emailOptions=event.emailOptions price_level_is_vendor=selected_price_level_is_vendor %}
 
         {% if level_count > 1 %}
         <h3>Select your registration options and level.</h3>
@@ -250,13 +250,16 @@
               });
               if (levelTemplateData.length == 0) {
                   $("#levelContainerAlert").show();
+                  $(".changeLevel").hide();
               } else {
                   $("#levelContainer").loadTemplate($("#levelTemplate"), levelTemplateData);
                   if (levelTemplateData.length == 1) {
                       select_level(1);
+                  } else if ("{{ selected_price_level }}") {
+                    console.log("Auto selecting ID", "{{ selected_price_level }}");
+                    select_level("{{ selected_price_level }}");
                   }
               }
-              $(".changeLevel").hide();
 
           });
           $.getJSON("{% url 'registration:departments' %}", function (data) {

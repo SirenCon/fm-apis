@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
+from typing import Any, Optional, Tuple
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -181,8 +182,52 @@ def handler(obj):
             )
         )
 
+def _get_default_non_vendor_price_level(now: datetime) -> Optional[int]:
+    price_levels = PriceLevel.objects.filter(
+        public=True, startDate__lte=now, endDate__gte=now
+    ).all()
+
+    non_vendor_id = None
+    for price_level in price_levels:
+        if price_level.isVendor:
+            continue
+
+        if non_vendor_id is not None:
+            # Got more than one non-vendor
+            return None
+
+        non_vendor_id = price_level.id
+
+    return non_vendor_id
+
+
+def _parse_level_id(level_id: Optional[Any], now: datetime) -> Tuple[Optional[int], bool]:
+    try:
+        level_id = int(level_id)
+    except Exception:
+        level_id = None
+
+    if level_id is None:
+        # Default the non-vendor price level if there's only one
+        level_id = _get_default_non_vendor_price_level(now)
+        return level_id, False
+
+    # Check if the given level_id is a vendor id
+    try:
+        price_level = PriceLevel.objects.filter(
+            id=level_id, public=True, startDate__lte=now, endDate__gte=now
+        ).first()
+        is_vendor = price_level.isVendor if price_level else None
+
+        return level_id, is_vendor
+    except PriceLevel.DoesNotExist:
+        level_id = _get_default_non_vendor_price_level()
+        return level_id, False
+
 
 def index(request):
+    level_id = request.GET.get("level_id")
+
     try:
         event = Event.objects.get(default=True)
     except Event.DoesNotExist:
@@ -201,10 +246,14 @@ def index(request):
         public=True, startDate__lte=now, endDate__gte=now
     ).order_by("basePrice").count()
 
+    level_id, is_vendor = _parse_level_id(level_id, now)
+
     context = {
         "event": event,
         "discount": discount,
         "level_count": level_count,
+        "selected_price_level": level_id,
+        "selected_price_level_is_vendor": is_vendor,
     }
 
     if event.websiteUrl:

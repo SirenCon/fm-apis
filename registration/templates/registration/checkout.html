@@ -101,7 +101,7 @@
       <hr/>
       {% if total > 0 %}
 
-        {% if not discount %}
+        {% if not discount and not is_vendor_level %}
 
           <h3>Discount</h3>
           <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;">If you have a discount
@@ -230,7 +230,7 @@
                          data-error="City is required."/>
                 </div>
                 <div class="col-sm-5">
-                  <select class="form-control bfh-states" id="state" data-country="country" data-state="VA"
+                  <select class="form-control bfh-states" id="state" data-country="country" data-state="WI"
                           name="state"></select>
                 </div>
 

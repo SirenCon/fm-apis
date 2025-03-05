@@ -146,6 +146,7 @@ class PriceLevel(models.Model):
     emailVIP = models.BooleanField(default=False)
     emailVIPEmails = models.CharField(max_length=400, blank=True, default="")
     isMinor = models.BooleanField(default=False)
+    isVendor = models.BooleanField(default=False)
 
     class Meta:
         db_table = "registration_price_level"

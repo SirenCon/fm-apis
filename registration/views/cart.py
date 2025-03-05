@@ -18,7 +18,7 @@ def get_cart(request):
     discount = request.session.get("discount", "")
     event = Event.objects.get(default=True)
     if not sessionItems and not sessionOrderItems:
-        context = {"orderItems": [], "total": 0, "discount": {}, "event": event}
+        context = {"orderItems": [], "total": 0, "discount": {}, "event": event, "is_vendor_level": False}
         request.session.flush()
     elif sessionOrderItems:
         orderItems = list(OrderItem.objects.filter(id__in=sessionOrderItems))
@@ -28,8 +28,12 @@ def get_cart(request):
                 discount = discount.first()
         total, total_discount = ordering.get_total([], orderItems, discount)
 
+        is_vendor_level = False
         hasMinors = False
         for item in orderItems:
+            if not is_vendor_level and item.badge.effectiveLevel().isVendor:
+                is_vendor_level = True
+
             if item.badge.isMinor():
                 item.isMinor = True
                 hasMinors = True
@@ -45,9 +49,11 @@ def get_cart(request):
             "paid_total": paid_total,
             "discount": discount,
             "hasMinors": hasMinors,
+            "is_vendor_level": is_vendor_level,
         }
 
     elif sessionItems:
+        is_vendor_level = False
         cartItems = list(Cart.objects.filter(id__in=sessionItems))
         orderItems = []
         if discount:
@@ -87,6 +93,10 @@ def get_cart(request):
 
             pdp = cartJson["priceLevel"]
             priceLevel = PriceLevel.objects.get(id=pdp["id"])
+
+            if not is_vendor_level and priceLevel.isVendor:
+                is_vendor_level = True
+
             pdo = pdp["options"]
             options = []
             for option in pdo:
@@ -119,6 +129,7 @@ def get_cart(request):
             "total_discount": total_discount,
             "discount": discount,
             "hasMinors": hasMinors,
+            "is_vendor_level": is_vendor_level,
         }
     return render(request, "registration/checkout.html", context)
 
