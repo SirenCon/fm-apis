@@ -174,19 +174,9 @@ urlpatterns = [
         name="onsite_remove_from_cart",
     ),
     url(
-        r"^onsite/admin/open/?$",
-        registration.views.onsite_admin.open_terminal,
-        name="open_terminal",
-    ),
-    url(
-        r"^onsite/admin/close/?$",
-        registration.views.onsite_admin.close_terminal,
-        name="close_terminal",
-    ),
-    url(
-        r"^onsite/admin/ready/?$",
-        registration.views.onsite_admin.ready_terminal,
-        name="ready_terminal",
+        r"^onsite/admin/terminal/status/?$",
+        registration.views.onsite_admin.set_terminal_status,
+        name="terminal_status",
     ),
     url(
         r"^onsite/admin/payment/?$",
@@ -222,6 +212,11 @@ urlpatterns = [
         r"^onsite/cash/complete/?$",
         registration.views.onsite_admin.complete_cash_transaction,
         name="complete_cash_transaction",
+    ),
+    url(
+        r"^onsite/admin/receipt/?$",
+        registration.views.onsite_admin.print_receipts,
+        name="onsite_print_receipts",
     ),
     url(
         r"^onsite/cashdrawer/status/?$",
@@ -347,4 +342,19 @@ urlpatterns = [
         registration.views.webhooks.square_webhook,
         name="square_webhook",
     ),
+    url(
+        r"^terminal/square/token$",
+        registration.views.onsite_admin.terminal_square_token,
+        name="terminal_square_token"
+    ),
+    url(
+        r"^terminal/square/completed$",
+        registration.views.onsite_admin.complete_square_transaction,
+        name="terminal_square_completed"
+    ),
+    url(
+        r"^oauth/square$",
+        registration.views.onsite_admin.oauth_square,
+        name="oauth_square",
+    )
 ]
