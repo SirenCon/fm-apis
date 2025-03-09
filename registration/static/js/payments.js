@@ -190,11 +190,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
-        if (Number(value) >= 1) {
+        if (Number(value) >= MINIMUM_ORG_DONATION) {
             return;
         }
 
-        event.target.setAttribute('data-error', 'minimum $1 donation is required.');
+        event.target.setAttribute('data-error', 'minimum $' + String(MINIMUM_ORG_DONATION) + ' donation is required.');
     });
 
     const cardButton = document.getElementById('checkout');

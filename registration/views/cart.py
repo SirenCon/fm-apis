@@ -18,7 +18,7 @@ def get_cart(request):
     discount = request.session.get("discount", "")
     event = Event.objects.get(default=True)
     if not sessionItems and not sessionOrderItems:
-        context = {"orderItems": [], "total": 0, "discount": {}, "event": event, "is_vendor_level": False}
+        context = {"orderItems": [], "total": 0, "discount": {}, "event": event, "is_vendor_level": False, "minimum_org_donation": 0.00}
         request.session.flush()
     elif sessionOrderItems:
         orderItems = list(OrderItem.objects.filter(id__in=sessionOrderItems))
@@ -30,9 +30,14 @@ def get_cart(request):
 
         is_vendor_level = False
         hasMinors = False
+        minimum_org_donation = 0.00
         for item in orderItems:
-            if not is_vendor_level and item.badge.effectiveLevel().isVendor:
+            effective_level = item.badge.effectiveLevel()
+            if not is_vendor_level and effective_level.isVendor:
                 is_vendor_level = True
+
+            if effective_level.minimumOrgDonation and effective_level.minimumOrgDonation > minimum_org_donation:
+                minimum_org_donation = effective_level.minimumOrgDonation
 
             if item.badge.isMinor():
                 item.isMinor = True
@@ -50,9 +55,11 @@ def get_cart(request):
             "discount": discount,
             "hasMinors": hasMinors,
             "is_vendor_level": is_vendor_level,
+            "minimum_org_donation": minimum_org_donation,
         }
 
     elif sessionItems:
+        minimum_org_donation = 0.00
         is_vendor_level = False
         cartItems = list(Cart.objects.filter(id__in=sessionItems))
         orderItems = []
@@ -97,6 +104,9 @@ def get_cart(request):
             if not is_vendor_level and priceLevel.isVendor:
                 is_vendor_level = True
 
+            if priceLevel.minimumOrgDonation and priceLevel.minimumOrgDonation > minimum_org_donation:
+                minimum_org_donation = priceLevel.minimumOrgDonation
+
             pdo = pdp["options"]
             options = []
             for option in pdo:
@@ -130,6 +140,7 @@ def get_cart(request):
             "discount": discount,
             "hasMinors": hasMinors,
             "is_vendor_level": is_vendor_level,
+            "minimum_org_donation": minimum_org_donation,
         }
     return render(request, "registration/checkout.html", context)
 

@@ -99,7 +99,7 @@
       {% endif %}
 
       <hr/>
-      {% if total > 0 %}
+      {% if total > 0 or minimum_org_donation > 0 %}
 
         {% if not discount and not is_vendor_level %}
 
@@ -154,7 +154,7 @@
               <div class="col-sm-4">
                 <div class="input-group">
                   <div class="input-group-addon">$</div>
-                  <input type="number" min="1" step="1" pattern="^\d+(?:\.\d{0,2})?$" placeholder="1.00" id="donateOrg"
+                  <input type="number" min="{{ minimum_org_donation }}" step="1" pattern="^\d+(?:\.\d{0,2})?$" placeholder="{{ minimum_org_donation }}" id="donateOrg"
                          class="form-control validate" required data-error="Please use only numbers and a decimal."/>
                 </div>
               </div>
@@ -292,7 +292,7 @@
 
 
 {% block javascript %}
-  {% if total > 0 %}
+  {% if total > 0 or minimum_org_donation > 0 %}
     {% if SQUARE_ENVIRONMENT == "sandbox" %}
       <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
     {% else %}
@@ -316,9 +316,10 @@
       /* Application data */
       let cart_total = {{ total|default:0 }};
       let paid_total = {{ paid_total|default:0 }};
+      const MINIMUM_ORG_DONATION = {{ minimum_org_donation }};
   </script>
   <script type="application/javascript" src="{% static 'js/checkout.js' %}"></script>
-  {% if total > 0 %}
+  {% if total > 0 or minimum_org_donation > 0 %}
     <script type="application/javascript" src="{% static 'js/payments.js' %}"></script>
   {% else %}
     <script type="application/javascript">
