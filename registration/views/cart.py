@@ -172,7 +172,10 @@ def saveCart(cart):
         aslRequest=bool(pda["asl"]),
     )
 
-    if event.collectAddress:
+    priceLevel = PriceLevel.objects.get(id=int(pdp["id"]))
+    is_vendor_level = priceLevel.isVendor
+
+    if event.collectAddress or is_vendor_level:
         try:
             attendee.address1 = pda["address1"]
             attendee.address2 = pda["address2"]
@@ -193,8 +196,6 @@ def saveCart(cart):
 
     badge = Badge(badgeName=badgeName, event=event, attendee=attendee, signature_svg=pda.get("signature_svg"), signature_bitmap=pda.get("signature_bitmap"))
     badge.save()
-
-    priceLevel = PriceLevel.objects.get(id=int(pdp["id"]))
 
     via = "WEB"
     if postData["attendee"].get("onsite", False):
