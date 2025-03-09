@@ -279,6 +279,13 @@ def checkout(request):
     if not cart_items and not order_items:
         return common.abort(400, "There is nothing in your cart!")
 
+    minimum_org_donation = 0.00
+    for item in order_items:
+        effective_level = item.badge.effectiveLevel()
+
+        if effective_level.minimumOrgDonation and effective_level.minimumOrgDonation > minimum_org_donation:
+            minimum_org_donation = effective_level.minimumOrgDonation
+
     for cart in (cart_items or []):
         postData = json.loads(cart.formData)
         priceLevel = postData["priceLevel"]
@@ -296,7 +303,9 @@ def checkout(request):
                 "apisError": f"{option.optionName} is sold out. Please remove it from your cart."
             })
 
-    if subtotal == 0:
+    porg = Decimal(post_data.get("orgDonation") or "0.00")
+
+    if subtotal == 0 and not porg:
         status, message, order = doZeroCheckout(discount, cart_items, order_items)
         if not status:
             return common.abort(400, message)
@@ -320,15 +329,14 @@ def checkout(request):
             )
         return common.success()
 
-    porg = Decimal(post_data.get("orgDonation") or "0.00")
     pcharity = Decimal(post_data.get("charityDonation") or "0.00")
     pbill = post_data["billingData"]
 
     if porg < 0:
         porg = 0
 
-    if porg < 1:
-        return common.abort(400, {"apisError": "A minimum of $1 donation is required."})
+    if porg < minimum_org_donation:
+        return common.abort(400, {"apisError": f"A minimum of ${minimum_org_donation} donation is required."})
 
     if pcharity < 0:
         pcharity = 0
