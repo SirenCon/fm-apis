@@ -220,6 +220,14 @@
           };
       {% endif %}
 
+      function addQueryParam(url, paramName, paramValue) {
+        const urlObject = new URL(url);
+        const searchParams = new URLSearchParams(urlObject.search);
+        searchParams.set(paramName, paramValue);
+        urlObject.search = searchParams.toString();
+        return urlObject.toString();
+      }
+
       var select_level = function (levelId) {
           $.each(levelTemplateData, function (key, val) {
               var id = val.levelId.split('_')[1];
@@ -230,6 +238,11 @@
                   $(".selectLevel").text("Selected!");
                   $("#levelTemplateColumn").removeClass("col-xs-6").addClass("col-xs-12");
                   generateOptions(id);
+
+                  const currentUrl = window.location.href;
+                  const newUrl = addQueryParam(currentUrl, "level_id", id);
+                  window.history.pushState({ path: newUrl }, "", newUrl);
+
                   return false;
               }
           });
@@ -239,6 +252,22 @@
           $("form").fadeIn();
           $.getJSON("{% url 'registration:pricelevels' %}", function (data) {
               levelData = data;
+
+              data.sort((a, b) => {
+                const firstName = a.name.toUpperCase();
+                const secondName = b.name.toUpperCase();
+
+                if (firstName < secondName) {
+                  return -1;
+                }
+
+                if (firstName > secondName) {
+                  return 1;
+                }
+
+                return 0;
+              });
+
               $.each(data, function (key, val) {
                   var centsOff = (parseFloat(val.base_price) * discount.percentOff) / 100;
                   levelTemplateData.push({
@@ -254,7 +283,7 @@
               } else {
                   $("#levelContainer").loadTemplate($("#levelTemplate"), levelTemplateData);
                   if (levelTemplateData.length == 1) {
-                      select_level(1);
+                      select_level(data[0].id);
                   } else if ("{{ selected_price_level }}") {
                     console.log("Auto selecting ID", "{{ selected_price_level }}");
                     select_level("{{ selected_price_level }}");
