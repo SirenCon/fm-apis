@@ -1547,7 +1547,7 @@ admin.site.register(PriceLevelOption, PriceLevelOptionAdmin)
 
 
 class DiscountAdmin(admin.ModelAdmin):
-    list_display = ("codeName", "amountOff", "percentOff", "oneTime", "used", "status")
+    list_display = ("codeName", "amountOff", "percentOff", "oneTime", "used", "status", "waiveRequiredDonation")
     save_on_top = True
 
 

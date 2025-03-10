@@ -305,6 +305,15 @@ def checkout(request):
 
     porg = Decimal(post_data.get("orgDonation") or "0.00")
 
+    if discount and discount.waiveRequiredDonation:
+        minimum_org_donation = 0.00
+
+    if porg < 0:
+        porg = 0
+
+    if porg < minimum_org_donation:
+        return common.abort(400, {"apisError": f"A minimum of ${minimum_org_donation} donation is required."})
+
     if subtotal == 0 and not porg:
         status, message, order = doZeroCheckout(discount, cart_items, order_items)
         if not status:
@@ -331,12 +340,6 @@ def checkout(request):
 
     pcharity = Decimal(post_data.get("charityDonation") or "0.00")
     pbill = post_data["billingData"]
-
-    if porg < 0:
-        porg = 0
-
-    if porg < minimum_org_donation:
-        return common.abort(400, {"apisError": f"A minimum of ${minimum_org_donation} donation is required."})
 
     if pcharity < 0:
         pcharity = 0

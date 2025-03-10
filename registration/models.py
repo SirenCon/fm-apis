@@ -46,6 +46,7 @@ class Discount(models.Model):
     notes = models.TextField(blank=True)
     oneTime = models.BooleanField(default=False)
     used = models.IntegerField(default=0)
+    waiveRequiredDonation = models.BooleanField(default=False)
     reason = models.CharField(max_length=100, blank=True)
 
     def __str__(self):

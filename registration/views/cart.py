@@ -18,7 +18,7 @@ def get_cart(request):
     discount = request.session.get("discount", "")
     event = Event.objects.get(default=True)
     if not sessionItems and not sessionOrderItems:
-        context = {"orderItems": [], "total": 0, "discount": {}, "event": event, "is_vendor_level": False, "minimum_org_donation": 0.00}
+        context = {"orderItems": [], "total": 0, "discount": {}, "event": event, "minimum_org_donation": 0.00}
         request.session.flush()
     elif sessionOrderItems:
         orderItems = list(OrderItem.objects.filter(id__in=sessionOrderItems))
@@ -28,14 +28,10 @@ def get_cart(request):
                 discount = discount.first()
         total, total_discount = ordering.get_total([], orderItems, discount)
 
-        is_vendor_level = False
         hasMinors = False
         minimum_org_donation = 0.00
         for item in orderItems:
             effective_level = item.badge.effectiveLevel()
-            if not is_vendor_level and effective_level.isVendor:
-                is_vendor_level = True
-
             if effective_level.minimumOrgDonation and effective_level.minimumOrgDonation > minimum_org_donation:
                 minimum_org_donation = effective_level.minimumOrgDonation
 
@@ -43,6 +39,9 @@ def get_cart(request):
                 item.isMinor = True
                 hasMinors = True
                 break
+
+        if discount and discount.waiveRequiredDonation:
+            minimum_org_donation = 0.00
 
         paid_total = item.badge.paidTotal()
 
@@ -54,13 +53,11 @@ def get_cart(request):
             "paid_total": paid_total,
             "discount": discount,
             "hasMinors": hasMinors,
-            "is_vendor_level": is_vendor_level,
             "minimum_org_donation": minimum_org_donation,
         }
 
     elif sessionItems:
         minimum_org_donation = 0.00
-        is_vendor_level = False
         cartItems = list(Cart.objects.filter(id__in=sessionItems))
         orderItems = []
         if discount:
@@ -101,9 +98,6 @@ def get_cart(request):
             pdp = cartJson["priceLevel"]
             priceLevel = PriceLevel.objects.get(id=pdp["id"])
 
-            if not is_vendor_level and priceLevel.isVendor:
-                is_vendor_level = True
-
             if priceLevel.minimumOrgDonation and priceLevel.minimumOrgDonation > minimum_org_donation:
                 minimum_org_donation = priceLevel.minimumOrgDonation
 
@@ -132,6 +126,9 @@ def get_cart(request):
             }
             orderItems.append(orderItem)
 
+        if discount and discount.waiveRequiredDonation:
+            minimum_org_donation = 0.00
+
         context = {
             "event": event,
             "orderItems": orderItems,
@@ -139,7 +136,6 @@ def get_cart(request):
             "total_discount": total_discount,
             "discount": discount,
             "hasMinors": hasMinors,
-            "is_vendor_level": is_vendor_level,
             "minimum_org_donation": minimum_org_donation,
         }
     return render(request, "registration/checkout.html", context)
