@@ -70,4 +70,4 @@ def idempotency_key():
 
 @register.simple_tag
 def is_production():
-    return os.environ.get("NODE_ENVIRONMENT") == "production"
+    return os.environ.get("SQUARE_ENVIRONMENT") == "production"
