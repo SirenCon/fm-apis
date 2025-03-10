@@ -4,6 +4,7 @@ import os
 import uuid
 
 from django import template
+from django.conf import settings
 from django.contrib.sites.models import Site
 
 register = template.Library()
@@ -70,4 +71,4 @@ def idempotency_key():
 
 @register.simple_tag
 def is_production():
-    return os.environ.get("SQUARE_ENVIRONMENT") == "production"
+    return getattr(settings, "SQUARE_ENVIRONMENT", "") == "production"
