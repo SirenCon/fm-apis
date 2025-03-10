@@ -10,7 +10,9 @@
   {% if orderItems %}
     <div role="tabpanel" class="tab-pane fade in active" id="personal">
       <h1>Checkout</h1>
+      {% if event.multiAttendeeCarts %}
       <h3>Add another attendee to your order, or checkout</h3>
+      {% endif %}
       <div class="col-sm-12">
         <div id="alert-bar" class="alert alert-danger alert-hidden" role="alert"><b>Test alert....</b></div>
       </div>
