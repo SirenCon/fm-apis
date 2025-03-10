@@ -10,7 +10,7 @@
   <link href="{% static 'css/bootstrap-formhelpers.css' %}" rel="stylesheet" media="screen">
   <link href="{% static 'css/bootstrap-datepicker.css' %}" rel="stylesheet" media="screen">
   <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
-  {% if is_production %}
+  {% if SQUARE_ENVIRONMENT == "production" %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
   {% else %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon_blue.ico' %}">

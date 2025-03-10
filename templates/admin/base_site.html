@@ -1,9 +1,9 @@
 {% extends "admin/base_site.html" %}
 
-{% load static %}
+{% load settings static %}
 
 {% block extrahead %}
-  {% if is_production %}
+  {% if SQUARE_ENVIRONMENT == "production" %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
   {% else %}
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon_blue.ico' %}">
