@@ -267,7 +267,7 @@ def index(request):
         context["message"] = "is not yet open. Please stay tuned to our social media for updates!"
         return render(request, "registration/closed.html", context)
     elif event.attendeeRegEnd <= today:
-        context["message"] = "has ended."
+        context["message"] = "has ended. In person registration will open on event day, May 31st, 2025."
         return render(request, "registration/closed.html", context)
 
 
