@@ -5,7 +5,6 @@ import json
 import logging
 
 import requests
-import sentry_sdk
 
 
 class FilebeatHandler(logging.Handler):
@@ -39,7 +38,7 @@ class FilebeatHandler(logging.Handler):
         }
 
         try:
-            response = requests.post(self._endpoint_url, headers=headers, data=data_to_send, timeout=2)
+            response = requests.post(self._endpoint_url, headers=headers, data=data_to_send, timeout=1)
             response.raise_for_status()
         except Exception as exc:
-            sentry_sdk.capture_exception(exc)
+            print(exc)
