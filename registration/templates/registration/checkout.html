@@ -126,13 +126,13 @@
           <form class="form-horizontal" role="form" data-toggle="validator">
 
             <h3>Required Free-Will Donation</h3>
-            <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;">
+            <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;font-size:18px;">
               {% if event.charity %}
                 If you would like to make an extra gift to our annual charity,
                 {% if event.charity.url %}<a href="{{ event.charity.url }}">{{ event.charity }}</a>{% else %}
                   {{ event.charity }}{% endif %}, or to the convention, please enter it below.
               {% else %}
-                We require a free-Will donation in the amount of your choosing to keep the event running.
+                The $8 admission fee Goes directly to Camp Tesomas/The Samoset Council. We ask you to include a donation in the amount of your choosing below, to help us Fund the Event. SirenCon as an event operates 100% on donations. We thank you for your donation!
               {% endif %}
             </div>
             {% if event.charity %}
