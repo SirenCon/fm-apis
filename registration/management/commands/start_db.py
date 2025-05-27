@@ -7,6 +7,30 @@ from django.core.management.base import BaseCommand
 from registration.utils.database import DatabaseStatus, Postgres
 
 
+config_block = """
+DATABASES = {{
+    'default': {{
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': '{db_path}',
+        'NAME' : '{db_name}',
+    }}
+}}
+"""
+
+config_block_with_test = """
+DATABASES = {{
+    'default': {{
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': '{db_path}',
+        'NAME' : '{db_name}',
+        'TEST' : {{
+            'NAME' : '{test_db_name}',
+        }}
+    }}
+}}
+"""
+
+
 class Command(BaseCommand):
     help = "Starts the development postgresql database."
 
@@ -61,3 +85,17 @@ class Command(BaseCommand):
         test_db_name = options["test_db_name"]
         if test_db_name and not skip_test_db:
             postgres.create_db(test_db_name)
+
+            config_text = config_block_with_test.format(
+                db_path=postgres.db_path,
+                db_name=db_name,
+                test_db_name=test_db_name,
+            )
+        else:
+            config_text = config_block.format(
+                db_path=postgres.db_path,
+                db_name=db_name,
+            )
+
+        print("Add the following to your settings.py if you haven't already")
+        print(config_text)
