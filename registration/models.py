@@ -856,6 +856,25 @@ class Order(models.Model):
     lastFour = models.CharField(max_length=4, blank=True, verbose_name="Last 4")
     apiData = models.JSONField(null=True)
     onsite_reference = models.UUIDField(null=True, blank=True)
+    checkedInDate = models.DateTimeField(
+        null=True,
+        default=None,
+        verbose_name="Checked In Date",
+        help_text="The time in which the guest was checked in to the event.",
+    )
+    wristBandCountPickedUp = models.IntegerField(
+        null=True,
+        default=None,
+        verbose_name="Wrist bands picked up",
+        help_text="The amount of wrist bands that were picked up from this order.",
+    )
+    qrcodeHash = models.CharField(
+        null=True,
+        default=None,
+        max_length=200,
+        verbose_name="QR code secret hash",
+        help_text="Hashed secret within the emailed QR code.",
+    )
 
     def __str__(self):
         return "${0} {1} ({2}) [{3}]".format(
