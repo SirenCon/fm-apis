@@ -26,7 +26,7 @@ PyJWT~=2.8.0
 responses==0.25.5
 respx==0.22.0
 sentry-sdk
-squareup==22.0.0.20220921
+squareup==40.0.0.220250123
 qrcode~=7.4.2
 pytz~=2024.1
 Pygments~=2.18.0
