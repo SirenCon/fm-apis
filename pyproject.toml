@@ -35,7 +35,7 @@ dependencies = [
     "respx>=0.22.0",
     "sentry-sdk>=2.21.0",
     "soupsieve>=2.6",
-    "squareup==22.0.0.20220921",
+    "squareup==40.0.0.220250123",
 ]
 
 [tool.uv.sources]
