@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import date
 from io import BytesIO
+from urllib.parse import urlparse
 
 import qrcode
 from django import forms
@@ -120,6 +121,14 @@ class FirebaseAdmin(admin.ModelAdmin):
         endpoint = "https://{0}".format(current_site.domain)
         token = mqtt.get_client_token(firebase)
 
+        port = 443
+
+        try:
+            parsed_url = urlparse(settings.MQTT_EXTERNAL_BROKER)
+            port = int(parsed_url.netloc.split(":")[1])
+        except Exception:
+            pass
+
         return {
             "terminalName": firebase.name,
             "endpoint": endpoint,
@@ -127,7 +136,7 @@ class FirebaseAdmin(admin.ModelAdmin):
             "webViewUrl": firebase.webview,
             "themeColor": firebase.background_color,
             "mqttHost": settings.MQTT_EXTERNAL_BROKER,
-            "mqttPort": 443,
+            "mqttPort": port,
             "mqttUsername": token["user"],
             "mqttPassword": token["token"],
             "mqttTopic": f'{mqtt.get_topic("terminal", firebase.name)}/action',
