@@ -14,7 +14,6 @@ FORMAT_TOPIC_WILDCARD_RE = re.compile(r"[\#\+ /]")
 
 logger = logging.getLogger(__name__)
 
-BASE_TOPIC = "apis"
 TOPICS = [
     "receipts",
     "admin",
@@ -30,6 +29,8 @@ class JSONDecimalEncoder(json.JSONEncoder):
 
 
 def get_topic(topic, target=None):
+    BASE_TOPIC = getattr(settings, "MQTT_BASE_TOPIC", "apis")
+
     if target:
         return f"{BASE_TOPIC}/{topic}/{format_topic(target)}"
     return f"{BASE_TOPIC}/{topic}"
