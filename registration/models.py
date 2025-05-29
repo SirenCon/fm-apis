@@ -893,6 +893,11 @@ class Order(models.Model):
         verbose_name="QR code secret hash",
         help_text="Hashed secret within the emailed QR code.",
     )
+    sentWelcomeEmail = models.BooleanField(
+        default=False,
+        verbose_name="Welcome email sent",
+        help_text="Whether or not the welcome email has been sent.",
+    )
 
     def __str__(self):
         return "${0} {1} ({2}) [{3}]".format(
