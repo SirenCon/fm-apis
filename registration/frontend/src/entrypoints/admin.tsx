@@ -19,7 +19,7 @@ declare global {
 }
 
 export interface ApisConfig {
-  debug: boolean;
+  user: ApisUser;
   sentry: ApisSentry;
   errors: ApisError[];
   mqtt: ApisMqttConfig;
@@ -27,6 +27,12 @@ export interface ApisConfig {
   urls: ApisUrls;
   permissions: ApisPermissions;
   terminals: ApisTerminalSettings;
+}
+
+export interface ApisUser {
+  id: number;
+  email: string;
+  station?: string;
 }
 
 export interface ApisSentry {
@@ -45,13 +51,13 @@ export interface ApisError {
 export interface ApisMqttConfig {
   broker: string;
   auth: ApisMqttAuth;
-  supports_printing: boolean;
 }
 
 export interface ApisMqttAuth {
   user: string;
   token: string;
   base_topic: string;
+  print_topic?: string;
 }
 
 export interface ApisShirtSize {
@@ -64,7 +70,6 @@ export interface ApisUrls {
   cash_deposit: string;
   cash_pickup: string;
   close_drawer: string;
-  close_terminal: string;
   complete_cash_transaction: string;
   enable_payment: string;
   logout: string;
@@ -73,18 +78,19 @@ export interface ApisUrls {
   onsite_admin_cart: string;
   onsite_admin_clear_cart: string;
   onsite_admin_search: string;
+  onsite_admin_transfer_cart: string;
   onsite_admin: string;
   onsite_create_discount: string;
   onsite_print_badges: string;
   onsite_print_clear: string;
+  onsite_print_receipts: string;
   onsite_remove_from_cart: string;
   onsite: string;
   open_drawer: string;
-  open_terminal: string;
   pdf: string;
-  ready_terminal: string;
   registration_badge_change: string;
   safe_drop: string;
+  set_terminal_status: string;
 }
 
 export interface ApisPermissions {
@@ -94,8 +100,20 @@ export interface ApisPermissions {
 }
 
 export interface ApisTerminalSettings {
-  selected?: number;
+  selected?: ApisSelectedTerminal;
   available: ApisTerminal[];
+}
+
+export interface ApisSelectedTerminal {
+  id: number;
+  features: ApisTerminalFeatures;
+}
+
+export interface ApisTerminalFeatures {
+  print_via_mqtt: boolean;
+  square_terminal: boolean;
+  payment_type?: "mqtt-app" | "square-terminal";
+  cashdrawer: boolean;
 }
 
 export interface ApisTerminal {
@@ -116,6 +134,15 @@ if (APIS_CONFIG.sentry.enabled) {
       return event;
     },
   });
+
+  Sentry.setUser({
+    id: APIS_CONFIG.user.id,
+    email: APIS_CONFIG.user.email,
+  });
+
+  if (APIS_CONFIG.user.station) {
+    Sentry.setTag("onsite_station", APIS_CONFIG.user.station);
+  }
 }
 
 export const SentryErrorBoundary =

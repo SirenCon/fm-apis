@@ -5,12 +5,14 @@ import { Accessor, createSignal, Setter } from "solid-js";
 import { ApisMqttConfig } from "../entrypoints/admin";
 
 export type MqttTopic =
-  | "refresh"
-  | "open"
-  | "notification"
   | "alert"
+  | "authorize_terminal"
+  | "notification"
+  | "open"
+  | "refresh"
   | "scan/id"
-  | "scan/shc";
+  | "scan/shc"
+  | "transfer";
 
 export type MqttEmitter = Emitter<Record<MqttTopic, object | null>>;
 
@@ -35,14 +37,17 @@ export default class MqttClient {
     if (!this.config.auth) return;
 
     const wildcardTopic = this.getPrefixedTopic("#");
-    const randomClientId = Math.random().toString(16).substr(2, 8);
 
     this.client = mqtt.connect(config.broker, {
       username: config.auth.user,
       password: config.auth.token,
-      clientId: `${config.auth.user}-${randomClientId}`,
-      clean: true,
+      clientId: `admin-${config.auth.user}`,
+      clean: false,
+      protocolVersion: 5,
       timerVariant: "native",
+      properties: {
+        sessionExpiryInterval: 300,
+      },
     });
 
     this.client.on("connect", () => {
@@ -91,14 +96,19 @@ export default class MqttClient {
       switch (strippedTopic) {
         case "notification":
           if (payload?.["text"]) {
-            sendNotification(payload?.["text"]);
+            sendNotification(payload["text"]);
           }
           break;
         case "alert":
           if (payload?.["text"]) {
-            alert(payload?.["text"]);
+            alert(payload["text"]);
           }
           break;
+        case "authorize_terminal":
+          if (payload?.["url"] && payload?.["state"]) {
+            document.cookie = `square_oauth_state=${payload["state"]}; path=/`;
+            window.open(payload["url"], "square_oauth");
+          }
         default:
           this.emitter.emit(strippedTopic, payload);
           break;
@@ -112,6 +122,13 @@ export default class MqttClient {
 
   public publishMessage(topic: string, payload: string) {
     this.client?.publish(this.getPrefixedTopic(topic), payload);
+  }
+
+  public publishPrintMessage(payload: string) {
+    this.client?.publish(
+      this.config.auth.print_topic || this.getPrefixedTopic("action"),
+      payload
+    );
   }
 
   private getPrefixedTopic(topic: string): string {

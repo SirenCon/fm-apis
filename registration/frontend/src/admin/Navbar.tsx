@@ -83,6 +83,24 @@ const ActionButton: Component<{
   );
 };
 
+function makeStatusRequestHelper(url: string) {
+  return async function (
+    status: "open" | "close" | "ready" | "gay" | "blue-light"
+  ) {
+    let endpoint = new URL(url, window.location.href);
+    endpoint.searchParams.set("status", status);
+
+    const resp = await fetch(endpoint, {
+      headers: {
+        "x-csrftoken": CSRF_TOKEN,
+      },
+    });
+    const data = await resp.json();
+
+    return data;
+  };
+}
+
 async function makeSimpleRequest(url: string) {
   const resp = await fetch(url, {
     headers: {
@@ -129,20 +147,24 @@ const Actions: Component<{
   config: ApisConfig;
   setReadyForNext: Setter<boolean>;
 }> = (props) => {
+  const statusRequestHelper = makeStatusRequestHelper(
+    props.config.urls.set_terminal_status
+  );
+
   return (
     <div class="navbar-dropdown is-right">
       <ActionButton
         name="Open Position"
         icon="fas fa-check"
         keyboardShortcut={["Alt", "O"]}
-        action={() => makeSimpleRequest(props.config.urls.open_terminal)}
+        action={() => statusRequestHelper("open")}
       />
 
       <ActionButton
         name="Close Position"
         icon="fas fa-window-close"
         keyboardShortcut={["Alt", "L"]}
-        action={() => makeSimpleRequest(props.config.urls.close_terminal)}
+        action={() => statusRequestHelper("close")}
       />
 
       <ActionButton
@@ -150,12 +172,31 @@ const Actions: Component<{
         icon="fas fa-forward"
         keyboardShortcut={["Alt", "N"]}
         action={() => {
-          makeSimpleRequest(props.config.urls.ready_terminal);
+          statusRequestHelper("ready");
           props.setReadyForNext(true);
         }}
       />
 
-      <Show when={props.config.permissions.cash_admin}>
+      <ActionButton
+        name="Party Mode"
+        icon="fas fa-rainbow"
+        keyboardShortcut={["Alt", "G"]}
+        action={() => statusRequestHelper("gay")}
+      />
+
+      <ActionButton
+        name="Blue Light Special"
+        icon="fas fa-k"
+        keyboardShortcut={["Alt", "K"]}
+        action={() => statusRequestHelper("blue-light")}
+      />
+
+      <Show
+        when={
+          props.config.permissions.cash_admin &&
+          props.config.terminals.selected?.features?.cashdrawer
+        }
+      >
         <>
           <hr class="navbar-divider" />
 
@@ -319,7 +360,7 @@ export const Navbar: Component<{
     if (
       availableIds.length > 0 &&
       config.terminals.selected &&
-      !availableIds.includes(config.terminals.selected)
+      !availableIds.includes(config.terminals.selected?.id)
     ) {
       switchTerminal(availableIds[0].toString());
     }
@@ -360,7 +401,7 @@ export const Navbar: Component<{
                     {(terminal) => (
                       <option
                         value={terminal.id}
-                        selected={terminal.id === config.terminals.selected}
+                        selected={terminal.id === config.terminals.selected?.id}
                       >
                         {terminal.name}
                       </option>
@@ -397,7 +438,13 @@ export const Navbar: Component<{
                 userSettings={userSettings}
               />
 
-              <Show when={config.mqtt.supports_printing}>
+              <ToggleSetting
+                name="Search With Birthday"
+                key="search_birthday"
+                userSettings={userSettings}
+              />
+
+              <Show when={config.terminals.selected?.features?.print_via_mqtt}>
                 <ToggleSetting
                   name="Auto Print After Payment"
                   key="print_after_payment"

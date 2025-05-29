@@ -57,7 +57,16 @@ export const CartActions: Component<{
         ?.map((badge) => badge.id) || []
   );
 
-  if (config.mqtt.supports_printing) {
+  const allBadgesPaid = createMemo(
+    () =>
+      ((props.entries?.result?.length || 0) > 0 &&
+        props.entries?.result?.every((badge) =>
+          PRINTABLE_STATUS.has(badge.abandoned)
+        )) ||
+      false
+  );
+
+  if (config.terminals.selected?.features?.print_via_mqtt) {
     const autoPrintCheck = createAutoPrintCheck(printableBadgeIds);
 
     createEffect(async () => {
@@ -95,45 +104,82 @@ export const CartActions: Component<{
         )}
       >
         <div class="columns">
-          <ActionButton
-            class="is-primary"
-            disabled={!canTenderCash()}
-            loading={loading()}
-            setLoading={setLoading}
-            keyboardShortcut={["Alt", "M"]}
-            action={() => {
-              if (props.entries) {
-                return attemptCashPayment(
-                  props.manager,
-                  props.entries.reference,
-                  props.entries.total
-                );
-              }
-            }}
+          <Show
+            when={config.terminals.selected?.features?.square_terminal}
+            fallback={<div class="column"></div>}
           >
-            <span class="icon">
-              <i class="fas fa-money-bill-alt"></i>
-            </span>
-            <span>Tender Cash</span>
-          </ActionButton>
-          <ActionButton
-            class="is-warning"
-            disabled={!canUseCard()}
-            loading={loading()}
-            setLoading={setLoading}
-            keyboardShortcut={["Alt", "C"]}
-            action={() => enableCardPayment(props.manager)}
-          >
-            <span class="icon">
-              <i class="fas fa-credit-card"></i>
-            </span>
-            <span>Credit/Debit Card</span>
-          </ActionButton>
-        </div>
-        <Show when={config.permissions.discount}>
-          <div class="columns">
             <ActionButton
               class="is-link is-outlined"
+              disabled={!allBadgesPaid()}
+              loading={loading()}
+              setLoading={setLoading}
+              action={() => printReceipts(props.manager)}
+            >
+              <span class="icon">
+                <i class="fas fa-receipt"></i>
+              </span>
+              <span>Receipt</span>
+            </ActionButton>
+          </Show>
+
+          <Show
+            when={
+              config.permissions.cash &&
+              config.terminals.selected?.features?.cashdrawer
+            }
+            fallback={<div class="column"></div>}
+          >
+            <ActionButton
+              class="is-primary"
+              disabled={!canTenderCash()}
+              loading={loading()}
+              setLoading={setLoading}
+              keyboardShortcut={["Alt", "M"]}
+              action={() => {
+                if (props.entries) {
+                  return attemptCashPayment(
+                    props.manager,
+                    props.entries.reference,
+                    props.entries.total
+                  );
+                }
+              }}
+            >
+              <span class="icon">
+                <i class="fas fa-money-bill-alt"></i>
+              </span>
+              <span>Cash</span>
+            </ActionButton>
+          </Show>
+
+          <Show
+            when={APIS_CONFIG.terminals.selected?.features?.payment_type}
+            fallback={<div class="column"></div>}
+          >
+            <ActionButton
+              class="is-primary"
+              disabled={!canUseCard()}
+              loading={loading()}
+              setLoading={setLoading}
+              keyboardShortcut={["Alt", "C"]}
+              action={() => enableCardPayment(props.manager, false)}
+              altAction={() => enableCardPayment(props.manager, true)}
+            >
+              <span class="icon">
+                <i class="fas fa-credit-card"></i>
+              </span>
+              <span>Card</span>
+            </ActionButton>
+          </Show>
+        </div>
+
+        <div class="columns">
+          <Show
+            when={config.permissions.discount}
+            fallback={<div class="column"></div>}
+          >
+            <ActionButton
+              class="is-warning is-outlined"
               disabled={!canUseCard()}
               loading={loading()}
               setLoading={setLoading}
@@ -142,13 +188,12 @@ export const CartActions: Component<{
               <span class="icon">
                 <i class="fas fa-gift"></i>
               </span>
-              <span>Create Discount</span>
+              <span>Discount</span>
             </ActionButton>
-          </div>
-        </Show>
-        <div class="columns">
+          </Show>
+
           <ActionButton
-            class="is-primary"
+            class="is-link"
             disabled={!hasPrintableBadges()}
             loading={loading()}
             setLoading={setLoading}
@@ -165,7 +210,8 @@ export const CartActions: Component<{
                 setLoading,
                 userSettings.userSettings().clear_cart_after_print,
                 props.clearSearch,
-                config.mqtt.supports_printing && !holdingShift
+                !!config.terminals.selected?.features?.print_via_mqtt &&
+                  !holdingShift
               );
             }}
           >
@@ -230,8 +276,8 @@ async function createAndApplyDiscount(manager: CartManager) {
   }
 }
 
-async function enableCardPayment(manager: CartManager) {
-  const resp = await manager.enableCardPayment();
+async function enableCardPayment(manager: CartManager, fallback: boolean) {
+  const resp = await manager.enableCardPayment(fallback);
   if (!resp.success) {
     alert(`Error enabling card payment: ${resp.reason}`);
   }
@@ -261,6 +307,14 @@ async function printBadges(
 
   if (!mqttPrint) {
     window.open(resp.url, "badge");
+  }
+}
+
+async function printReceipts(manager: CartManager) {
+  const resp = await manager.printReceipts();
+
+  if (!resp.success) {
+    alert(`Error printing receipts: ${resp.reason}`);
   }
 }
 

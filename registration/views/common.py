@@ -251,6 +251,7 @@ def index(request):
     context = {
         "event": event,
         "discount": discount,
+        "form_type": "attendee",
         "level_count": level_count,
         "selected_price_level": level_id,
         "selected_price_level_is_vendor": is_vendor,

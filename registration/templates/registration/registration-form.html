@@ -85,6 +85,9 @@
         <hr/>
         <div class="container-fluid">
           <div class="row" id="levelContainer">
+            <div id="levelsNoBirthday">
+              <p>Please enter your birthdate to see available registration levels</p>
+            </div>
             <div id="levelContainerAlert" class="alert alert-danger" style="display:none">
               <b>No price levels have been set up yet!</b>
               If you are the site administrator, you'll need to <a href="{% url 'admin:registration_pricelevel_add' %}">add
@@ -220,37 +223,23 @@
           };
       {% endif %}
 
-      function addQueryParam(url, paramName, paramValue) {
-        const urlObject = new URL(url);
-        const searchParams = new URLSearchParams(urlObject.search);
-        searchParams.set(paramName, paramValue);
-        urlObject.search = searchParams.toString();
-        return urlObject.toString();
-      }
+      function updatePriceLevels() {
+        levelTemplateData = [];
 
-      var select_level = function (levelId) {
-          $.each(levelTemplateData, function (key, val) {
-              var id = val.levelId.split('_')[1];
-              if (id == levelId) {
-                  $("#regLevel").val(val.name);
-                  $("#levelContainer").loadTemplate($("#levelTemplate"), val);
-                  $(".changeLevel").show();
-                  $(".selectLevel").text("Selected!");
-                  $("#levelTemplateColumn").removeClass("col-xs-6").addClass("col-xs-12");
-                  generateOptions(id);
+        const [year, month, day] = [
+          $("#byear").val(),
+          $("#bmonth").val(),
+          $("#bday").val()
+        ];
 
-                  const currentUrl = window.location.href;
-                  const newUrl = addQueryParam(currentUrl, "level_id", id);
-                  window.history.pushState({ path: newUrl }, "", newUrl);
+        if (!year || !month || !day) return;
 
-                  return false;
-              }
-          });
-      };
-
-      $("body").ready(function () {
-          $("form").fadeIn();
-          $.getJSON("{% url 'registration:pricelevels' %}", function (data) {
+        $.post("{% url 'registration:pricelevels' %}", JSON.stringify({
+            year,
+            month,
+            day,
+            form_type: FORM_TYPE,
+          }), function (data) {
               levelData = data;
 
               data.sort((a, b) => {
@@ -290,6 +279,41 @@
                   }
               }
 
+          });
+      }
+
+      function addQueryParam(url, paramName, paramValue) {
+        const urlObject = new URL(url);
+        const searchParams = new URLSearchParams(urlObject.search);
+        searchParams.set(paramName, paramValue);
+        urlObject.search = searchParams.toString();
+        return urlObject.toString();
+      }
+
+      var select_level = function (levelId) {
+          $.each(levelTemplateData, function (key, val) {
+              var id = val.levelId.split('_')[1];
+              if (id == levelId) {
+                  $("#regLevel").val(val.name);
+                  $("#levelContainer").loadTemplate($("#levelTemplate"), val);
+                  $(".changeLevel").show();
+                  $(".selectLevel").text("Selected!");
+                  $("#levelTemplateColumn").removeClass("col-xs-6").addClass("col-xs-12");
+                  generateOptions(id);
+
+                  const currentUrl = window.location.href;
+                  const newUrl = addQueryParam(currentUrl, "level_id", id);
+                  window.history.pushState({ path: newUrl }, "", newUrl);
+
+                  return false;
+              }
+          });
+      };
+
+      $("body").ready(function () {
+          $("form").fadeIn();
+          $("#bday, #bmonth, #byear").on("input", function() {
+            updatePriceLevels();
           });
           $.getJSON("{% url 'registration:departments' %}", function (data) {
               deptData = data;
