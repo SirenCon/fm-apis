@@ -11,6 +11,7 @@ from registration.models import *
 from registration.payments import charge_payment
 
 from .attendee import check_if_option_is_sold_out
+from .cart import saveCart
 from . import cart, common
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def do_checkout(
 
         if cartItems:
             for item in cartItems:
-                order_item = cart.saveCart(item)
+                order_item = saveCart(item)
                 order_item.order = order
                 order_item.save()
         elif orderItems:
@@ -110,7 +111,7 @@ def doZeroCheckout(discount, cartItems, orderItems):
 
     if cartItems:
         for item in cartItems:
-            orderItem = cart.saveCart(item)
+            orderItem = saveCart(item)
             orderItem.order = order
             orderItem.save()
     elif orderItems:
@@ -362,7 +363,7 @@ def checkout(request):
 
         if cart_items:
             for item in cart_items:
-                order_item = cart.saveCart(item)
+                order_item = saveCart(item)
                 order_item.order = order
                 order_item.save()
 
