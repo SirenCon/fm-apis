@@ -67,6 +67,7 @@ export interface ApisShirtSize {
 
 export interface ApisUrls {
   assign_badge_number: string;
+  mark_checked_in: string;
   cash_deposit: string;
   cash_pickup: string;
   close_drawer: string;

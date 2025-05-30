@@ -148,6 +148,7 @@ def onsite_admin(request):
             "shirt_sizes": [{"name": s.name, "id": s.id} for s in ShirtSizes.objects.all()],
             "urls": {
                 "assign_badge_number": reverse("registration:assign_badge_number"),
+                "mark_checked_in": reverse("registration:mark_checked_in"),
                 "cash_deposit": reverse("registration:cash_deposit"),
                 "cash_pickup": reverse("registration:cash_pickup"),
                 "close_drawer": reverse("registration:close_drawer"),
@@ -216,6 +217,59 @@ class SearchFields:
 
 
 @staff_member_required
+def onsite_admin_search_orders(request):
+    event = Event.objects.get(default=True)
+    query = request.GET.get("search", None)
+    if query is None:
+        return redirect("registration:onsite_admin")
+
+    data = []
+
+    query = query.strip()
+
+    def make_response_object(order_item):
+        return {
+            "id": order_item.order_id,
+            "reference": order_item.order.reference,
+            "editUrl": reverse("admin:registration_order_change", args=(order_item.order_id,)),
+            "attendee": {
+                "firstName": order_item.badge.attendee.firstName,
+                "lastName": order_item.badge.attendee.lastName,
+                "preferredName": order_item.badge.attendee.preferredName,
+            },
+        }
+
+    checked_order_ids = set()
+    filtered_orders = {}
+
+    order_item_results = OrderItem.objects.all()
+    for order_item in order_item_results:
+        if not order_item.badge:
+            continue
+
+        if order_item.order_id in checked_order_ids:
+            continue
+
+        checked_order_ids.add(order_item.order_id)
+
+        if query.lower() in order_item.order.reference:
+            filtered_orders[order_item.order_id] = make_response_object(order_item)
+            continue
+
+        full_name = order_item.badge.attendee.firstName + " " + order_item.badge.attendee.lastName
+        if query.lower() in full_name.lower():
+            filtered_orders[order_item.order_id] = make_response_object(order_item)
+            continue
+
+    data = list(filtered_orders.values())
+
+    from django.db import connection
+    print(len(connection.queries))
+
+    return JsonResponse({"success": True, "results": data})
+
+
+@staff_member_required
 def onsite_admin_search(request):
     event = Event.objects.get(default=True)
     query = request.GET.get("search", None)
@@ -226,9 +280,15 @@ def onsite_admin_search(request):
 
     def collectBadges(badges):
         for badge in badges:
+            order = OrderItem.objects.filter(badge=badge).first().order
             data.append({
                 "id": badge.id,
                 "editUrl": reverse("admin:registration_badge_change", args=(badge.id,)),
+                "orderReference": order.reference,
+                "checkedInDate": order.checkedInDate,
+                "wristBandCountPickedUp": order.wristBandCountPickedUp,
+                "cabinAssignment": order.cabinAssignment,
+                "campsiteAssignment": order.campsiteAssignment,
                 "attendee": {
                     "firstName": badge.attendee.firstName,
                     "lastName": badge.attendee.lastName,
@@ -423,6 +483,35 @@ def assign_badge_number(request):
             status=400,
         )
     return JsonResponse({"success": True})
+
+
+@staff_member_required
+def mark_checked_in(request):
+    parsed_body = json.loads(request.body)
+    print(parsed_body)
+
+    order_reference = parsed_body["orderReference"]
+    wristband_count = int(parsed_body["wristBandCount"])
+    cabin_numer = parsed_body["cabinNumber"]
+    campsite = parsed_body["campsite"]
+
+    order = Order.objects.filter(reference=order_reference).first()
+    print(order)
+
+    if not order:
+        return JsonResponse({
+            "success": False,
+            "errors": ["Order not found"],
+            "message": "Order not found",
+        })
+
+    order.checkedInDate = timezone.now()
+    order.wristBandCountPickedUp = wristband_count
+    order.cabinAssignment = cabin_numer
+    order.campsiteAssignment = campsite
+    order.save()
+
+    return JsonResponse({"success": True, "message": "Guest has been checked in"})
 
 
 def get_messages_list(request):
@@ -947,6 +1036,10 @@ def build_result(cart):
             "attendee_options": attendee_options,
             "printed": badge.printed,
             "reference": order.reference,
+            "checkedInDate": order.checkedInDate,
+            "wristBandCountPickedUp": order.wristBandCountPickedUp,
+            "cabinAssignment": order.cabinAssignment,
+            "campsiteAssignment": order.campsiteAssignment,
             "staff": staff_data,
         }
         result.append(item)

@@ -187,6 +187,16 @@ urlpatterns = [
         name="assign_badge_number",
     ),
     re_path(
+        r"^onsite/admin/check_in/?$",
+        registration.views.onsite_admin.mark_checked_in,
+        name="mark_checked_in",
+    ),
+    re_path(
+        r"^onsite/admin/order_search/?$",
+        registration.views.onsite_admin.onsite_admin_search_orders,
+        name="onsite_admin_search_orders",
+    ),
+    re_path(
         r"^onsite/admin/badge/print/?$",
         registration.views.onsite_admin.onsite_print_badges,
         name="onsite_print_badges",

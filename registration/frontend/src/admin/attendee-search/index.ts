@@ -10,6 +10,11 @@ export interface BadgeResult {
   badgeName: string;
   badgeNumber?: number;
   abandoned: string;
+  orderReference: string;
+  checkedInDate: string | null;
+  wristBandCountPickedUp: number | null;
+  cabinAssignment: string | null;
+  campsiteAssignment: string | null;
 }
 
 export interface Attendee {

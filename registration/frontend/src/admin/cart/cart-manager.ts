@@ -152,6 +152,33 @@ export class CartManager {
     return await this.makeRequest(url);
   }
 
+  public async markCheckedIn(
+    orderReference: string,
+    wristBandCount: number,
+    cabinNumber: string,
+    campsite: string,
+    beforeClearingCart?: () => void,
+  ): Promise<FallibleRequest<CheckedInResponse>> {
+    const assignData = await this.makeRequest(this.urls.mark_checked_in, {
+      method: "POST",
+      body: JSON.stringify({
+        orderReference: orderReference,
+        wristBandCount: wristBandCount,
+        cabinNumber: cabinNumber,
+        campsite: campsite,
+      })
+    });
+
+    if (!assignData.success) {
+      return { success: false };
+    }
+
+    beforeClearingCart?.();
+    await this.clearCart();
+
+    return { success: true };
+  }
+
   public async printBadges(
     ids: number[],
     clearCart: boolean = true,
@@ -306,6 +333,10 @@ export interface Badge {
   level_total: string;
   attendee_options: AttendeeOption[];
   reference: string;
+  checkedInDate: string;
+  wristBandCountPickedUp: number;
+  cabinAssignment: string;
+  campsiteAssignment: string;
   staff?: Staff;
 }
 
@@ -339,4 +370,9 @@ export interface BadgePrintResponse {
   file: string;
   next: string;
   url: string;
+}
+
+export interface CheckedInResponse {
+  success: boolean;
+  message: string;
 }

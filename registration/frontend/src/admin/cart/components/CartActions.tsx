@@ -29,6 +29,10 @@ export const CartActions: Component<{
 
   const [loading, setLoading] = createSignal<boolean>(false);
 
+  const [wristBandCount, setWristBandCount] = createSignal<number>(0);
+  const [cabinNumber, setCabinNumber] = createSignal<string>("");
+  const [campsite, setCampsite] = createSignal<string>("");
+
   const hasHold = createMemo(
     () =>
       props.entries?.result?.some((entry) => !!entry.holdType) ||
@@ -194,32 +198,69 @@ export const CartActions: Component<{
 
           <ActionButton
             class="is-link"
-            disabled={!hasPrintableBadges()}
+            disabled={!allBadgesPaid()}
             loading={loading()}
             setLoading={setLoading}
-            keyboardShortcut={["Control", "P"]}
             action={(ev) => {
-              let holdingShift = false;
-              if (ev instanceof KeyboardEvent || ev instanceof MouseEvent) {
-                holdingShift = ev.shiftKey;
-              }
-
-              return printBadges(
+              return markCheckedIn(
                 props.manager,
-                printableBadgeIds(),
+                props.entries?.result,
+                wristBandCount(),
+                cabinNumber(),
+                campsite(),
                 setLoading,
                 userSettings.userSettings().clear_cart_after_print,
                 props.clearSearch,
-                !!config.terminals.selected?.features?.print_via_mqtt &&
-                  !holdingShift
-              );
+              )
             }}
           >
             <span class="icon">
               <i class="fas fa-print"></i>
             </span>
-            <span>Print Badges</span>
+            <span>Check In</span>
           </ActionButton>
+        </div>
+
+        <div class="columns">
+          <div class="column">
+            <p class="control is-expanded">
+              <input
+                type="number"
+                name="wristBandCount"
+                class="input"
+                placeholder="# of wrist bands picked up"
+                required
+                value={wristBandCount()}
+                onChange={(e) => setWristBandCount(e.currentTarget.value)}
+              />
+            </p>
+          </div>
+
+          <div class="column">
+            <p class="control is-expanded">
+              <input
+                type="text"
+                name="cabinNumber"
+                class="input"
+                placeholder="Cabin #"
+                value={cabinNumber()}
+                onChange={(e) => setCabinNumber(e.currentTarget.value)}
+              />
+            </p>
+          </div>
+
+          <div class="column">
+            <p class="control is-expanded">
+              <input
+                type="text"
+                name="campSite"
+                class="input"
+                placeholder="Campsite"
+                value={campsite()}
+                onChange={(e) => setCampsite(e.currentTarget.value)}
+              />
+            </p>
+          </div>
         </div>
       </SentryErrorBoundary>
     </div>
@@ -280,6 +321,39 @@ async function enableCardPayment(manager: CartManager, fallback: boolean) {
   const resp = await manager.enableCardPayment(fallback);
   if (!resp.success) {
     alert(`Error enabling card payment: ${resp.reason}`);
+  }
+}
+
+async function markCheckedIn(
+  manager: CartManager,
+  badges: string,
+  wristBandCount: number,
+  cabinNumber: string,
+  campsite: string,
+  setLoading: Setter<boolean>,
+  clearCart: boolean,
+  clearSearch: () => void,
+) {
+  if (badges.length > 1) {
+    alert("Only one order can be in the cart for checkin");
+    return;
+  }
+
+  const orderReference = badges[0].reference;
+
+  setLoading(true);
+  const resp = await manager.markCheckedIn(
+    orderReference,
+    wristBandCount,
+    cabinNumber,
+    campsite,
+    clearSearch,
+  );
+  setLoading(false);
+
+  if (!resp.success) {
+    alert(`Error checking in: ${resp.message}`);
+    return;
   }
 }
 

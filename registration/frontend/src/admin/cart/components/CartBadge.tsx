@@ -26,6 +26,11 @@ export const CartBadge: Component<{ manager: CartManager; badge: Badge }> = (
       <div class="message">
         <div class="message-header is-justify-content-start">
           <div class="tags is-flex-wrap-nowrap mb-0 mr-2">
+
+            <Show when={props.badge.checkedInDate}>
+              <span class="tag is-danger">Checked in at {props.badge.checkedInDate}</span>
+            </Show>
+
             <span
               class="tag"
               classList={{

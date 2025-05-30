@@ -886,6 +886,20 @@ class Order(models.Model):
         verbose_name="Wrist bands picked up",
         help_text="The amount of wrist bands that were picked up from this order.",
     )
+    cabinAssignment = models.CharField(
+        null=True,
+        default=None,
+        max_length=4,
+        verbose_name="Cabin assignment",
+        help_text="Which cabin number the guest is in",
+    )
+    campsiteAssignment = models.CharField(
+        null=True,
+        default=None,
+        max_length=4,
+        verbose_name="Campsite assignment",
+        help_text="Which campsite the guest is in",
+    )
     qrcodeHash = models.CharField(
         null=True,
         default=None,
