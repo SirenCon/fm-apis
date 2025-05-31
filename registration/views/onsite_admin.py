@@ -494,6 +494,7 @@ def mark_checked_in(request):
     wristband_count = int(parsed_body["wristBandCount"])
     cabin_numer = parsed_body["cabinNumber"]
     campsite = parsed_body["campsite"]
+    attending_dinner = parsed_body["attendingDinner"]
 
     order = Order.objects.filter(reference=order_reference).first()
     print(order)
@@ -509,6 +510,7 @@ def mark_checked_in(request):
     order.wristBandCountPickedUp = wristband_count
     order.cabinAssignment = cabin_numer
     order.campsiteAssignment = campsite
+    order.attendingDinner = attending_dinner
     order.save()
 
     return JsonResponse({"success": True, "message": "Guest has been checked in"})

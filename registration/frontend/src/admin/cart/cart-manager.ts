@@ -157,6 +157,7 @@ export class CartManager {
     wristBandCount: number,
     cabinNumber: string,
     campsite: string,
+    attendingDinner: boolean,
     beforeClearingCart?: () => void,
   ): Promise<FallibleRequest<CheckedInResponse>> {
     const assignData = await this.makeRequest(this.urls.mark_checked_in, {
@@ -166,6 +167,7 @@ export class CartManager {
         wristBandCount: wristBandCount,
         cabinNumber: cabinNumber,
         campsite: campsite,
+        attendingDinner: attendingDinner,
       })
     });
 

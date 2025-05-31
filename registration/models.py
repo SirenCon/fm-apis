@@ -912,6 +912,12 @@ class Order(models.Model):
         verbose_name="Welcome email sent",
         help_text="Whether or not the welcome email has been sent.",
     )
+    attendingDinner = models.BooleanField(
+        null=True,
+        default=None,
+        verbose_name="Attending dinner",
+        help_text="Whether or not the guests are attending dinner.",
+    )
 
     def __str__(self):
         return "${0} {1} ({2}) [{3}]".format(

@@ -32,6 +32,7 @@ export const CartActions: Component<{
   const [wristBandCount, setWristBandCount] = createSignal<number>(0);
   const [cabinNumber, setCabinNumber] = createSignal<string>("");
   const [campsite, setCampsite] = createSignal<string>("");
+  const [attendingDinner, setAttendingDinner] = createSignal<number>(0);
 
   const hasHold = createMemo(
     () =>
@@ -208,6 +209,7 @@ export const CartActions: Component<{
                 wristBandCount(),
                 cabinNumber(),
                 campsite(),
+                attendingDinner(),
                 setLoading,
                 userSettings.userSettings().clear_cart_after_print,
                 props.clearSearch,
@@ -224,6 +226,7 @@ export const CartActions: Component<{
         <div class="columns">
           <div class="column">
             <p class="control is-expanded">
+              <label class="col-sm-3 control-label">Wristbands</label>
               <input
                 type="number"
                 name="wristBandCount"
@@ -238,6 +241,7 @@ export const CartActions: Component<{
 
           <div class="column">
             <p class="control is-expanded">
+              <label class="col-sm-3 control-label">Cabin #</label>
               <input
                 type="text"
                 name="cabinNumber"
@@ -251,6 +255,7 @@ export const CartActions: Component<{
 
           <div class="column">
             <p class="control is-expanded">
+              <label class="col-sm-3 control-label">Campsite</label>
               <input
                 type="text"
                 name="campSite"
@@ -258,6 +263,19 @@ export const CartActions: Component<{
                 placeholder="Campsite"
                 value={campsite()}
                 onChange={(e) => setCampsite(e.currentTarget.value)}
+              />
+            </p>
+          </div>
+
+          <div class="column">
+            <p class="control is-expanded">
+              <label class="col-sm-3 control-label">Dinner</label>
+              <input
+                type="number"
+                name="attendingDinner"
+                class="input"
+                value={attendingDinner()}
+                onChange={(e) => setAttendingDinner(e.currentTarget.value)}
               />
             </p>
           </div>
@@ -330,6 +348,7 @@ async function markCheckedIn(
   wristBandCount: number,
   cabinNumber: string,
   campsite: string,
+  attendingDinner: number,
   setLoading: Setter<boolean>,
   clearCart: boolean,
   clearSearch: () => void,
@@ -347,6 +366,7 @@ async function markCheckedIn(
     wristBandCount,
     cabinNumber,
     campsite,
+    attendingDinner > 0,
     clearSearch,
   );
   setLoading(false);
