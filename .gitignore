@@ -28,6 +28,15 @@ node_modules/
 /registration/static/admin.css.map
 /registration/static/admin.js
 /registration/static/admin.js.map
+/registration/static/admin/css/
+/registration/static/admin/fonts/
+/registration/static/admin/img/
+/registration/static/admin/js/
+/registration/static/debug_toolbar/
+/registration/static/django_extensions/
+/registration/static/django_u2f/
 /registration/static/fa-solid-900-5ZUYHGA7.woff2
 /registration/static/fa-solid-900-PJNKLK6W.ttf
+/registration/static/fa-solid-900-XY6737PV.woff2
+/registration/static/import_export/
 *.sublime-*
