@@ -37,6 +37,7 @@ dependencies = [
     "sentry-sdk>=2.21.0",
     "soupsieve>=2.6",
     "squareup==40.0.0.220250123",
+    "uwsgi>=2.0.31",
 ]
 
 [tool.uv.sources]
