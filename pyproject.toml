@@ -24,6 +24,7 @@ dependencies = [
     "gotenberg-client~=0.7.0",
     "influxdb~=5.3.1",
     "influxdb-client~=1.40.0",
+    "legacy-cgi>=2.6.4",
     "markuppy>=1.14",
     "paho-mqtt~=1.6.1",
     "pillow>=5.3",
