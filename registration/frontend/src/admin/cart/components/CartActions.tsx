@@ -5,6 +5,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  For,
   Setter,
   Show,
   useContext,
@@ -32,6 +33,7 @@ export const CartActions: Component<{
   const [wristBandCount, setWristBandCount] = createSignal<number>(0);
   const [cabinNumber, setCabinNumber] = createSignal<string>("");
   const [campsite, setCampsite] = createSignal<string>("");
+  const [badgeNumberInput, setBadgeNumberInput] = createSignal<string>("");
 
   const hasHold = createMemo(
     () =>
@@ -266,6 +268,91 @@ export const CartActions: Component<{
           </div>
 
         </div>
+
+        <div class="columns">
+          <div class="column">
+            <p class="control is-expanded">
+              <label class="col-sm-3 control-label">Badge #</label>
+              <input
+                type="number"
+                name="badgeNumberInput"
+                class="input"
+                placeholder="Enter badge number"
+                value={badgeNumberInput()}
+                onInput={(e) => setBadgeNumberInput(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const n = parseInt(badgeNumberInput(), 10);
+                    const reference = props.entries?.result?.[0]?.reference;
+                    if (!isNaN(n) && reference) {
+                      props.manager.addBadgeNumber(reference, n).then((resp) => {
+                        if (resp.success) {
+                          props.manager.refreshCart();
+                          setBadgeNumberInput("");
+                        } else {
+                          alert(`Error adding badge number: ${(resp as any).reason ?? "Unknown error"}`);
+                        }
+                      });
+                    }
+                  }
+                }}
+              />
+            </p>
+          </div>
+          <div class="column is-narrow" style="display: flex; align-items: flex-end;">
+            <button
+              class="button is-info"
+              disabled={badgeNumberInput() === "" || isNaN(parseInt(badgeNumberInput(), 10))}
+              onClick={() => {
+                const n = parseInt(badgeNumberInput(), 10);
+                const reference = props.entries?.result?.[0]?.reference;
+                if (!isNaN(n) && reference) {
+                  props.manager.addBadgeNumber(reference, n).then((resp) => {
+                    if (resp.success) {
+                      props.manager.refreshCart();
+                      setBadgeNumberInput("");
+                    } else {
+                      alert(`Error adding badge number: ${(resp as any).reason ?? "Unknown error"}`);
+                    }
+                  });
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <Show when={(props.entries?.result?.[0]?.assignedBadgeNumbers?.length ?? 0) > 0}>
+          <div class="columns">
+            <div class="column">
+              <div class="tags">
+                <For each={props.entries?.result?.[0]?.assignedBadgeNumbers ?? []}>
+                  {(num) => (
+                    <span class="tag is-info is-medium">
+                      #{num}
+                      <button
+                        class="delete is-small"
+                        onClick={() => {
+                          const reference = props.entries?.result?.[0]?.reference;
+                          if (reference) {
+                            props.manager.removeBadgeNumber(reference, num).then((resp) => {
+                              if (resp.success) {
+                                props.manager.refreshCart();
+                              } else {
+                                alert(`Error removing badge number: ${(resp as any).reason ?? "Unknown error"}`);
+                              }
+                            });
+                          }
+                        }}
+                      />
+                    </span>
+                  )}
+                </For>
+              </div>
+            </div>
+          </div>
+        </Show>
       </SentryErrorBoundary>
     </div>
   );

@@ -31,6 +31,7 @@ from registration.models import (
     Discount,
     Event,
     Firebase,
+    OnsiteBadgeAssignment,
     Order,
     OrderItem,
     ShirtSizes,
@@ -173,6 +174,8 @@ def onsite_admin(request):
                 "registration_badge_change": reverse("admin:registration_badge_change", args=(0,)),
                 "safe_drop": reverse("registration:safe_drop"),
                 "set_terminal_status": reverse("registration:terminal_status"),
+                "onsite_add_badge_number": reverse("registration:onsite_add_badge_number"),
+                "onsite_remove_badge_number": reverse("registration:onsite_remove_badge_number"),
             },
             "permissions": {
                 "cash": request.user.has_perm("registration.cash"),
@@ -194,9 +197,17 @@ class SearchFields:
     query: str
     birthday: Optional[str] = None
     badge_ids: Optional[List[int]] = None
+    onsite_badge_ids: Optional[List[int]] = None
 
     @classmethod
     def parse(cls, query: str) -> "SearchFields":
+        if re.fullmatch(r"[0-9,]+", query.strip()):
+            try:
+                ids = [int(n) for n in query.strip().split(",") if n]
+                return SearchFields(onsite_badge_ids=ids, query="")
+            except ValueError:
+                pass
+
         badge_nums = re.search(r"num:([0-9,]+)", query)
         if badge_nums:
             try:
@@ -302,6 +313,14 @@ def onsite_admin_search(request):
     query = query.strip()
 
     fields = SearchFields.parse(query)
+
+    if fields.onsite_badge_ids:
+        badges = Badge.objects.filter(
+            orderitem__order__badge_assignments__badge_number__in=fields.onsite_badge_ids,
+            event=event,
+        ).prefetch_related("attendee").distinct()
+        collectBadges(badges)
+        return JsonResponse({"success": True, "results": data})
 
     if fields.badge_ids:
         badges = Badge.objects.filter(event=event, badgeNumber__in=fields.badge_ids)
@@ -512,6 +531,56 @@ def mark_checked_in(request):
     order.save()
 
     return JsonResponse({"success": True, "message": "Guest has been checked in"})
+
+
+def _badge_numbers_for_order(order):
+    return sorted(order.badge_assignments.values_list("badge_number", flat=True))
+
+
+@staff_member_required
+def add_onsite_badge_number(request):
+    parsed_body = json.loads(request.body)
+    order_reference = parsed_body["orderReference"]
+    badge_number = int(parsed_body["badgeNumber"])
+
+    order = Order.objects.filter(reference=order_reference).first()
+    if not order:
+        return JsonResponse(
+            {"success": False, "message": "Order not found"}, status=400
+        )
+
+    existing = OnsiteBadgeAssignment.objects.filter(badge_number=badge_number).first()
+    if existing:
+        if existing.order != order:
+            return JsonResponse(
+                {"success": False, "message": f"Badge #{badge_number} is already assigned to another order"},
+                status=400,
+            )
+    else:
+        OnsiteBadgeAssignment.objects.create(order=order, badge_number=badge_number)
+    return JsonResponse(
+        {"success": True, "assignedNumbers": _badge_numbers_for_order(order)}
+    )
+
+
+@staff_member_required
+def remove_onsite_badge_number(request):
+    parsed_body = json.loads(request.body)
+    order_reference = parsed_body["orderReference"]
+    badge_number = int(parsed_body["badgeNumber"])
+
+    order = Order.objects.filter(reference=order_reference).first()
+    if not order:
+        return JsonResponse(
+            {"success": False, "message": "Order not found"}, status=400
+        )
+
+    OnsiteBadgeAssignment.objects.filter(
+        order=order, badge_number=badge_number
+    ).delete()
+    return JsonResponse(
+        {"success": True, "assignedNumbers": _badge_numbers_for_order(order)}
+    )
 
 
 def get_messages_list(request):
@@ -1040,6 +1109,7 @@ def build_result(cart):
             "wristBandCountPickedUp": order.wristBandCountPickedUp,
             "cabinAssignment": order.cabinAssignment,
             "campsiteAssignment": order.campsiteAssignment,
+            "assignedBadgeNumbers": _badge_numbers_for_order(order),
             "staff": staff_data,
         }
         result.append(item)

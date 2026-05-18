@@ -92,6 +92,8 @@ export interface ApisUrls {
   registration_badge_change: string;
   safe_drop: string;
   set_terminal_status: string;
+  onsite_add_badge_number: string;
+  onsite_remove_badge_number: string;
 }
 
 export interface ApisPermissions {

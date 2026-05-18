@@ -179,6 +179,26 @@ export class CartManager {
     return { success: true };
   }
 
+  public async addBadgeNumber(
+    orderReference: string,
+    badgeNumber: number
+  ): Promise<FallibleRequest<void>> {
+    return this.makeRequest(this.urls.onsite_add_badge_number, {
+      method: "POST",
+      body: JSON.stringify({ orderReference, badgeNumber }),
+    });
+  }
+
+  public async removeBadgeNumber(
+    orderReference: string,
+    badgeNumber: number
+  ): Promise<FallibleRequest<void>> {
+    return this.makeRequest(this.urls.onsite_remove_badge_number, {
+      method: "POST",
+      body: JSON.stringify({ orderReference, badgeNumber }),
+    });
+  }
+
   public async printBadges(
     ids: number[],
     clearCart: boolean = true,
@@ -337,6 +357,7 @@ export interface Badge {
   wristBandCountPickedUp: number;
   cabinAssignment: string;
   campsiteAssignment: string;
+  assignedBadgeNumbers: number[];
   staff?: Staff;
 }
 

@@ -933,6 +933,17 @@ class Order(models.Model):
         )
 
 
+class OnsiteBadgeAssignment(models.Model):
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="badge_assignments"
+    )
+    badge_number = models.IntegerField(unique=True)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Badge #{self.badge_number} → {self.order.reference}"
+
+
 class PaymentWebhookNotification(models.Model):
     integration = models.CharField(max_length=50, default="square")
     event_id = models.UUIDField(unique=True)

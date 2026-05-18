@@ -192,6 +192,16 @@ urlpatterns = [
         name="mark_checked_in",
     ),
     re_path(
+        r"^onsite/admin/badge/number/add/?$",
+        registration.views.onsite_admin.add_onsite_badge_number,
+        name="onsite_add_badge_number",
+    ),
+    re_path(
+        r"^onsite/admin/badge/number/remove/?$",
+        registration.views.onsite_admin.remove_onsite_badge_number,
+        name="onsite_remove_badge_number",
+    ),
+    re_path(
         r"^onsite/admin/order_search/?$",
         registration.views.onsite_admin.onsite_admin_search_orders,
         name="onsite_admin_search_orders",
