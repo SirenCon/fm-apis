@@ -235,7 +235,7 @@ def index(request):
 
     tz = timezone.get_current_timezone()
     now = timezone.now()
-    today = tz.localize(datetime.now())
+    today = datetime.now(tz)
     discount = request.session.get("discount")
     if discount:
         discount = Discount.objects.filter(codeName=discount)

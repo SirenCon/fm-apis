@@ -6,5 +6,3 @@
  * window.jQuery).
  */
 window.django = {jQuery: jQuery.noConflict(true)};
-window.jQuery = window.django.jQuery;
-window.$ = jQuery;

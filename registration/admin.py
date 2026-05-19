@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 import qrcode
 from django import forms
-from django.conf.urls import url
 from django.contrib import admin, auth, messages
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -18,7 +17,7 @@ from django.db.models import Max
 from django.forms import NumberInput, widgets
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import path, reverse
+from django.urls import path, re_path, reverse
 from django.utils.html import format_html, urlencode
 from django.utils.safestring import mark_safe
 from import_export import fields, resources
@@ -100,7 +99,7 @@ class FirebaseAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(FirebaseAdmin, self).get_urls()
         my_urls = [
-            url(r"^(.+)/provision/$", self.provision_view, name="firebase_provision"),
+            re_path(r"^(.+)/provision/$", self.provision_view, name="firebase_provision"),
         ]
         return my_urls + urls
 
@@ -1441,8 +1440,8 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
     def get_urls(self):
         urls = super(OrderAdmin, self).get_urls()
         my_urls = [
-            url(r"^(.+)/refund/$", self.refund_view, name="order_refund"),
-            url(r"^(.+)/refresh/$", self.refresh_view, name="order_refresh"),
+            re_path(r"^(.+)/refund/$", self.refund_view, name="order_refund"),
+            re_path(r"^(.+)/refresh/$", self.refresh_view, name="order_refresh"),
         ]
         return my_urls + urls
 
