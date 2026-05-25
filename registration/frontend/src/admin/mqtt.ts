@@ -41,10 +41,10 @@ export default class MqttClient {
     this.client = mqtt.connect(config.broker, {
       username: config.auth.user,
       password: config.auth.token,
-      clientId: `admin-${config.auth.user}`,
+      clientId: `admin-${config.auth.user}-${Math.random().toString(36).slice(2, 9)}`,
       clean: false,
       protocolVersion: 5,
-      timerVariant: "native",
+      timerVariant: "worker",
       properties: {
         sessionExpiryInterval: 300,
       },
