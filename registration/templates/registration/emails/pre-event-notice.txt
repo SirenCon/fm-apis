@@ -1,0 +1,59 @@
+Hi {{ billing_name }},
+
+SirenCon 2026 is almost here and we can't wait to see you!
+
+{% if not has_ec %}
+===========================================================
+  *** ACTION REQUIRED: EMERGENCY CONTACT MISSING ***
+
+  We do not have an emergency contact on file for your
+  order. This is required before you arrive at the event.
+  Please fill out the form here:
+
+    https://services.sirencon.com/emergency-contact/{{ reference }}
+
+===========================================================
+{% endif %}
+
+--- PACKING LIST ---
+
+Here's what to bring to SirenCon:
+
+  • SirenCon Shirts
+  • Bug Spray
+  • Sunscreen
+  • Rain Gear
+  • Lawn Chairs
+  • Snacks
+  • Portable Charger
+  • Water Bottle
+  • Hearing Protection
+  • Recording Equipment
+  • Spare Camera Batteries
+
+If you're staying on-site (lodging), also bring:
+  • Pillow
+  • Blankets/Sheets or Sleeping Bag
+  • Toiletries
+  • Bath Towels
+
+
+--- 2026 GUIDEBOOK ---
+
+Everything you need to know before you arrive is in the SirenCon 2026 Guidebook.
+From schedules to venue info, it's all in there:
+
+  https://www.sirencon.com/guidebook
+
+
+--- CHECK-IN ---
+
+All guests must check in at the Registration Booth to receive their badge
+and sign the event waiver before participating in any activities.
+
+
+If you have any questions, reach out to us at {{ event.registrationEmail }}.
+
+We'll see you there!
+
+{{ event }} Registration Team
