@@ -164,6 +164,36 @@
             </div>
             <hr/>
 
+            <h3>Emergency Contact Information</h3>
+            <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;font-size:18px;">
+              Please provide the name and phone number of someone we can contact in case of an emergency during the event.
+            </div>
+            <div class="form-group">
+              <label for="ecName" class="col-sm-3 control-label">Name<span style="color:red;">*</span></label>
+              <div class="col-sm-9">
+                <input type="text" id="ecName" placeholder="Full Name" class="form-control validate" required
+                       data-error="Emergency contact name is required."/>
+              </div>
+              <div class="col-sm-offset-3 help-block with-errors" style="padding-left:15px;"></div>
+            </div>
+            <div class="form-group">
+              <label for="ecRelationship" class="col-sm-3 control-label">Relationship<span style="color:red;">*</span></label>
+              <div class="col-sm-9">
+                <input type="text" id="ecRelationship" placeholder="e.g. Parent, Spouse, Friend" class="form-control validate" required
+                       data-error="Emergency contact relationship is required."/>
+              </div>
+              <div class="col-sm-offset-3 help-block with-errors" style="padding-left:15px;"></div>
+            </div>
+            <div class="form-group">
+              <label for="ecPhone" class="col-sm-3 control-label">Phone Number<span style="color:red;">*</span></label>
+              <div class="col-sm-9">
+                <input type="tel" id="ecPhone" placeholder="Phone Number" class="form-control validate" required
+                       data-error="Emergency contact phone number is required."/>
+              </div>
+              <div class="col-sm-offset-3 help-block with-errors" style="padding-left:15px;"></div>
+            </div>
+            <hr/>
+
             {% if event.collectBillingAddress %}
               <h3>Billing Information</h3>
 
@@ -268,6 +298,31 @@
       {% else %}
 
         {% csrf_token %}
+        <div class="container" style="width: inherit">
+          <h3>Emergency Contact Information</h3>
+          <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;font-size:18px;">
+            Please provide the name and phone number of someone we can contact in case of an emergency during the event.
+          </div>
+          <div class="form-group">
+            <label for="ecName" class="col-sm-3 control-label">Name<span style="color:red;">*</span></label>
+            <div class="col-sm-9">
+              <input type="text" id="ecName" placeholder="Full Name" class="form-control" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ecRelationship" class="col-sm-3 control-label">Relationship<span style="color:red;">*</span></label>
+            <div class="col-sm-9">
+              <input type="text" id="ecRelationship" placeholder="e.g. Parent, Spouse, Friend" class="form-control" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ecPhone" class="col-sm-3 control-label">Phone Number<span style="color:red;">*</span></label>
+            <div class="col-sm-9">
+              <input type="tel" id="ecPhone" placeholder="Phone Number" class="form-control" required/>
+            </div>
+          </div>
+          <hr/>
+        </div>
         <div class="container-fluid">
           <div class="row">
             <button class="btn btn-primary col-sm-3 col-sm-offset-9 col-xs-12" id="checkout">Checkout</button>
@@ -331,7 +386,13 @@
             checkoutButton.disabled = true;
             hideAlert();
 
-            const body = JSON.stringify({});
+            const body = JSON.stringify({
+                emergencyContact: {
+                    name: document.getElementById('ecName').value,
+                    relationship: document.getElementById('ecRelationship').value,
+                    phone: document.getElementById('ecPhone').value,
+                },
+            });
             try {
                 const response = await postJSON(URL_REGISTRATION_CHECKOUT, body);
                 if (response.ok) {

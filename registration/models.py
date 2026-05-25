@@ -933,6 +933,18 @@ class Order(models.Model):
         )
 
 
+class EmergencyContact(models.Model):
+    order = models.OneToOneField(
+        Order, on_delete=models.CASCADE, related_name="emergency_contact"
+    )
+    name = models.CharField(max_length=200)
+    relationship = models.CharField(max_length=100)
+    phone = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"Emergency Contact for Order {self.order.reference}: {self.name}"
+
+
 class OnsiteBadgeAssignment(models.Model):
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name="badge_assignments"

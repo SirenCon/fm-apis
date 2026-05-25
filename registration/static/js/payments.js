@@ -70,7 +70,12 @@ async function createPayment(token, url) {
             source_id: token,
         },
         charityDonation: $("#donateCharity").val(),
-        orgDonation: $("#donateOrg").val()
+        orgDonation: $("#donateOrg").val(),
+        emergencyContact: {
+            name: $("#ecName").val(),
+            relationship: $("#ecRelationship").val(),
+            phone: $("#ecPhone").val(),
+        },
     };
 
     try {

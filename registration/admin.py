@@ -1305,6 +1305,43 @@ def send_registration_email(modeladmin, request, queryset):
 send_registration_email.short_description = "Send registration email"
 
 
+class OrderAdminForm(forms.ModelForm):
+    ec_name = forms.CharField(
+        label="Name",
+        required=False,
+        max_length=200,
+        widget=forms.TextInput(attrs={"placeholder": "Full name"}),
+    )
+    ec_relationship = forms.CharField(
+        label="Relationship",
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Parent, Spouse, Friend"}),
+    )
+    ec_phone = forms.CharField(
+        label="Phone",
+        required=False,
+        max_length=50,
+        widget=forms.TextInput(attrs={"placeholder": "Phone number"}),
+    )
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        if instance and instance.pk:
+            try:
+                ec = instance.emergency_contact
+                self.fields["ec_name"].initial = ec.name
+                self.fields["ec_relationship"].initial = ec.relationship
+                self.fields["ec_phone"].initial = ec.phone
+            except EmergencyContact.DoesNotExist:
+                pass
+
+
 class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
     list_display = (
         "reference",
@@ -1320,6 +1357,7 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
     list_select_related = ("discount",)
     search_fields = ["reference", "lastFour"]
     readonly_fields = ("createdDate",)
+    form = OrderAdminForm
     save_on_top = True
     inlines = [OrderItemInline]
     actions = [
@@ -1349,6 +1387,13 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
                     "billingState",
                     "billingPostal",
                 ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Emergency Contact",
+            {
+                "fields": ("ec_name", "ec_relationship", "ec_phone"),
                 "classes": ("collapse",),
             },
         ),
@@ -1404,6 +1449,19 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
                 )
                 obj.status = status
         obj.save()
+
+        ec_name = (form.cleaned_data.get("ec_name") or "").strip()
+        if ec_name:
+            EmergencyContact.objects.update_or_create(
+                order=obj,
+                defaults={
+                    "name": ec_name,
+                    "relationship": (form.cleaned_data.get("ec_relationship") or "").strip(),
+                    "phone": (form.cleaned_data.get("ec_phone") or "").strip(),
+                },
+            )
+        else:
+            EmergencyContact.objects.filter(order=obj).delete()
 
     def refresh_view(self, request, order_id, extra_context=None):
         # Get Square Order ID, and grab latest info from the transactions API

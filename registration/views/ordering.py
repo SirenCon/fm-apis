@@ -320,6 +320,17 @@ def checkout(request):
         if not status:
             return common.abort(400, message)
 
+        ec_data = post_data.get("emergencyContact")
+        if ec_data and ec_data.get("name"):
+            EmergencyContact.objects.update_or_create(
+                order=order,
+                defaults={
+                    "name": ec_data["name"],
+                    "relationship": ec_data.get("relationship", ""),
+                    "phone": ec_data.get("phone", ""),
+                },
+            )
+
         existing_order_item = order.orderitem_set.first()
         if existing_order_item:
             add_attendee_to_assistant(request, existing_order_item.badge.attendee)
@@ -379,6 +390,17 @@ def checkout(request):
         )
 
     if status:
+        ec_data = post_data.get("emergencyContact")
+        if ec_data and ec_data.get("name"):
+            EmergencyContact.objects.update_or_create(
+                order=order,
+                defaults={
+                    "name": ec_data["name"],
+                    "relationship": ec_data.get("relationship", ""),
+                    "phone": ec_data.get("phone", ""),
+                },
+            )
+
         existing_order_item = order.orderitem_set.first()
         if existing_order_item:
             add_attendee_to_assistant(request, existing_order_item.badge.attendee)
