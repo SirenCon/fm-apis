@@ -918,6 +918,13 @@ class Order(models.Model):
         verbose_name="Attending dinner",
         help_text="Whether or not the guests are attending dinner.",
     )
+    waiverPdfUrl = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Waiver PDF URL",
+        help_text="URL to the signed waiver PDF stored in S3. Presence indicates waiver has been signed.",
+    )
 
     def __str__(self):
         return "${0} {1} ({2}) [{3}]".format(

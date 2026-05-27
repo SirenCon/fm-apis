@@ -331,5 +331,30 @@ urlpatterns = [
         r"^oauth/square$",
         registration.views.onsite_admin.oauth_square,
         name="oauth_square",
-    )
+    ),
+    re_path(
+        r"^onsite/admin/waiver/prompt/?$",
+        registration.views.onsite_admin.prompt_waiver,
+        name="onsite_prompt_waiver",
+    ),
+    re_path(
+        r"^onsite/admin/waiver/sign/?$",
+        registration.views.onsite_admin.sign_waiver,
+        name="onsite_sign_waiver",
+    ),
+    re_path(
+        r"^onsite/admin/waiver/relay/?$",
+        registration.views.onsite_admin.relay_waiver_signature,
+        name="onsite_relay_waiver_signature",
+    ),
+    re_path(
+        r"^onsite/admin/waiver/clear/?$",
+        registration.views.onsite_admin.clear_waiver,
+        name="onsite_clear_waiver",
+    ),
+    re_path(
+        r"^onsite/admin/waiver/view/?$",
+        registration.views.onsite_admin.view_waiver,
+        name="onsite_view_waiver",
+    ),
 ]

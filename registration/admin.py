@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 import qrcode
 from django import forms
+from django.conf import settings
 from django.contrib import admin, auth, messages
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -1305,6 +1306,39 @@ def send_registration_email(modeladmin, request, queryset):
 send_registration_email.short_description = "Send registration email"
 
 
+def clear_waiver_admin(modeladmin, request, queryset):
+    import boto3
+
+    bucket = getattr(settings, "WAIVER_S3_BUCKET", "")
+    region = getattr(settings, "WAIVER_S3_REGION", "us-east-1")
+    prefix = getattr(settings, "WAIVER_S3_PREFIX", "waivers/")
+
+    cleared = 0
+    for order in queryset:
+        if not order.waiverPdfUrl:
+            continue
+        if bucket and not order.waiverPdfUrl.startswith("local-dev://"):
+            try:
+                boto3.client("s3", region_name=region).delete_object(
+                    Bucket=bucket, Key=f"{prefix}{order.reference}.pdf"
+                )
+            except Exception as exc:
+                modeladmin.message_user(
+                    request,
+                    f"S3 delete failed for {order.reference}: {exc}",
+                    level=messages.ERROR,
+                )
+                continue
+        order.waiverPdfUrl = None
+        order.save(update_fields=["waiverPdfUrl"])
+        cleared += 1
+
+    modeladmin.message_user(request, f"Waiver cleared for {cleared} order(s).")
+
+
+clear_waiver_admin.short_description = "Clear signed waiver (delete from S3)"
+
+
 class OrderAdminForm(forms.ModelForm):
     ec_name = forms.CharField(
         label="Name",
@@ -1352,16 +1386,18 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
         "discount",
         "billingType",
         "status",
+        "waiver_pdf_link",
     )
     list_filter = ("status", "billingType")
     list_select_related = ("discount",)
     search_fields = ["reference", "lastFour"]
-    readonly_fields = ("createdDate",)
+    readonly_fields = ("createdDate", "waiver_pdf_link")
     form = OrderAdminForm
     save_on_top = True
     inlines = [OrderItemInline]
     actions = [
         send_registration_email,
+        clear_waiver_admin,
     ]
     fieldsets = (
         (
@@ -1398,7 +1434,16 @@ class OrderAdmin(ImportExportModelAdmin, NestedModelAdmin):
             },
         ),
         ("Notes", {"fields": ("notes",), "classes": ("collapse",)}),
+        ("Waiver", {"fields": ("waiver_pdf_link",)}),
     )
+
+    @admin.display(description="Signed Waiver")
+    def waiver_pdf_link(self, obj):
+        if not obj.waiverPdfUrl:
+            return "—"
+        if obj.waiverPdfUrl.startswith("local-dev://"):
+            return "Signed (local dev — no PDF)"
+        return format_html('<a href="{}" target="_blank">View PDF</a>', obj.waiverPdfUrl)
 
     def render_change_form(self, request, context, *args, **kwargs):
         obj = kwargs.get("obj")

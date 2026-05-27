@@ -66,6 +66,11 @@ export interface ApisShirtSize {
 }
 
 export interface ApisUrls {
+  onsite_prompt_waiver: string;
+  onsite_sign_waiver: string;
+  onsite_relay_waiver_signature: string;
+  onsite_clear_waiver: string;
+  onsite_view_waiver: string;
   assign_badge_number: string;
   mark_checked_in: string;
   cash_deposit: string;

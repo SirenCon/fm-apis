@@ -38,6 +38,8 @@ dependencies = [
     "soupsieve>=2.6",
     "squareup==40.0.0.220250123",
     "uwsgi>=2.0.31",
+    "boto3>=1.35.0",
+    "botocore[crt]>=1.43.15",
 ]
 
 [tool.uv]

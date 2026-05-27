@@ -96,6 +96,26 @@ export const CartActions: Component<{
   const canUseCard = () => !hasHold() && allNeedPayment();
   const hasPrintableBadges = () => printableBadgeIds()?.length > 0 || false;
 
+  // Waiver: show prompt button when the order has been paid but no waiver is on file
+  const hasWaiver = createMemo(
+    () => props.entries?.result?.some((badge) => !!badge.waiverPdfUrl) ?? false
+  );
+  const waiverOrderReference = createMemo(
+    () => props.entries?.result?.[0]?.reference
+  );
+  const canPromptWaiver = createMemo(
+    () => allBadgesPaid() && !hasWaiver() && !!waiverOrderReference()
+  );
+  const hasWaiverPdf = createMemo(() => {
+    const url = props.manager.cartEntries()?.result?.find((b) => b.waiverPdfUrl)?.waiverPdfUrl;
+    return !!url && !url.startsWith("local-dev://");
+  });
+  const viewWaiverUrl = createMemo(() => {
+    const ref = waiverOrderReference();
+    if (!ref || !hasWaiverPdf()) return null;
+    return props.manager.viewWaiverUrl(ref);
+  });
+
   return (
     <div class="control">
       <SentryErrorBoundary
@@ -221,6 +241,59 @@ export const CartActions: Component<{
             </span>
             <span>Check In</span>
           </ActionButton>
+        </div>
+
+        {/* Waiver row */}
+        <div class="columns">
+          <Show when={canPromptWaiver()}>
+            <ActionButton
+              class="is-warning"
+              disabled={false}
+              loading={loading()}
+              setLoading={setLoading}
+              action={() => promptWaiver(props.manager, waiverOrderReference()!)}
+            >
+              <span class="icon">
+                <i class="fas fa-file-signature"></i>
+              </span>
+              <span>Prompt For Waiver</span>
+            </ActionButton>
+          </Show>
+
+          <Show when={allBadgesPaid() && !hasWaiver()}>
+            <div class="column is-narrow is-align-self-center">
+              <span class="tag is-warning is-medium">
+                <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>
+                <span>No waiver on file</span>
+              </span>
+            </div>
+          </Show>
+
+          <Show when={allBadgesPaid() && hasWaiver()}>
+            <div class="column is-narrow is-align-self-center">
+              <div class="tags has-addons" style="margin-bottom: 0">
+                <span class="tag is-success is-medium">
+                  <span class="icon"><i class="fas fa-file-circle-check"></i></span>
+                  <span>Waiver signed</span>
+                </span>
+                <Show when={hasWaiverPdf()}>
+                  <a class="tag is-link is-medium" href={viewWaiverUrl()!} target="_blank" rel="noopener">
+                    View PDF
+                  </a>
+                </Show>
+              </div>
+            </div>
+            <ActionButton
+              class="is-danger is-light"
+              disabled={false}
+              loading={loading()}
+              setLoading={setLoading}
+              action={() => clearWaiver(props.manager, waiverOrderReference()!)}
+            >
+              <span class="icon"><i class="fas fa-trash"></i></span>
+              <span>Clear Waiver</span>
+            </ActionButton>
+          </Show>
         </div>
 
         <div class="columns">
@@ -472,6 +545,20 @@ async function printBadges(
 
   if (!mqttPrint) {
     window.open(resp.url, "badge");
+  }
+}
+
+async function promptWaiver(manager: CartManager, orderReference: string) {
+  const resp = await manager.promptWaiver(orderReference);
+  if (!resp.success) {
+    alert(`Error prompting for waiver: ${resp.reason}`);
+  }
+}
+
+async function clearWaiver(manager: CartManager, orderReference: string) {
+  const resp = await manager.clearWaiver(orderReference);
+  if (!resp.success) {
+    alert(`Error clearing waiver: ${resp.reason}`);
   }
 }
 

@@ -148,6 +148,11 @@ def onsite_admin(request):
             },
             "shirt_sizes": [{"name": s.name, "id": s.id} for s in ShirtSizes.objects.all()],
             "urls": {
+                "onsite_prompt_waiver": reverse("registration:onsite_prompt_waiver"),
+                "onsite_sign_waiver": reverse("registration:onsite_sign_waiver"),
+                "onsite_relay_waiver_signature": reverse("registration:onsite_relay_waiver_signature"),
+                "onsite_clear_waiver": reverse("registration:onsite_clear_waiver"),
+                "onsite_view_waiver": reverse("registration:onsite_view_waiver"),
                 "assign_badge_number": reverse("registration:assign_badge_number"),
                 "mark_checked_in": reverse("registration:mark_checked_in"),
                 "cash_deposit": reverse("registration:cash_deposit"),
@@ -1111,6 +1116,7 @@ def build_result(cart):
             "campsiteAssignment": order.campsiteAssignment,
             "assignedBadgeNumbers": _badge_numbers_for_order(order),
             "staff": staff_data,
+            "waiverPdfUrl": order.waiverPdfUrl,
         }
         result.append(item)
 
@@ -1435,3 +1441,337 @@ def print_receipts(request):
                 return JsonResponse({"success": False, "reason": "Got error attempting to print receipt"})
 
     return JsonResponse({"success": True})
+
+
+@staff_member_required
+def prompt_waiver(request):
+    """
+    Send an MQTT message to the active terminal instructing it to display the
+    waiver pre-filled with the order's billing info and emergency contact.
+    The waiverData payload includes a replyTopic so the iOS app knows where to
+    publish the completed signature.
+    """
+    order_reference = request.GET.get("reference", None)
+    if not order_reference:
+        return JsonResponse({"success": False, "reason": "Missing order reference"}, status=400)
+
+    # Resolve terminal early so we can embed the replyTopic in the payload
+    active = get_terminal_from_request(request)
+    if not active:
+        return JsonResponse({"success": False, "reason": "No terminal associated with request"}, status=400)
+
+    order = (
+        Order.objects.filter(reference=order_reference)
+        .prefetch_related("emergency_contact")
+        .first()
+    )
+    if not order:
+        return JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    # Get first attendee from the order for name/address fallback
+    order_item = (
+        OrderItem.objects.filter(order=order)
+        .select_related("badge__attendee")
+        .first()
+    )
+    if not order_item or not order_item.badge or not order_item.badge.attendee:
+        return JsonResponse({"success": False, "reason": "No attendee found on order"}, status=404)
+
+    attendee = order_item.badge.attendee
+
+    waiver_data = {
+        "orderReference": order.reference,
+        "name": order.billingName or f"{attendee.firstName} {attendee.lastName}",
+        "address": order.billingAddress1 or attendee.address1 or "",
+        "city": order.billingCity or attendee.city or "",
+        "state": order.billingState or attendee.state or "",
+        "zipcode": order.billingPostal or attendee.postalCode or "",
+        "date": timezone.now().date().isoformat(),
+        "emergencyContactName": "",
+        "emergencyContactRelationship": "",
+        "emergencyContactPhone": "",
+        # iOS publishes the signed result to this topic; the admin frontend
+        # subscribes and relays it to relay_waiver_signature via HTTP.
+        "replyTopic": f"{mqtt.get_topic('admin', active.name)}/waiverSigned",
+    }
+
+    try:
+        ec = order.emergency_contact
+        waiver_data["emergencyContactName"] = ec.name
+        waiver_data["emergencyContactRelationship"] = ec.relationship
+        waiver_data["emergencyContactPhone"] = ec.phone
+    except Exception:
+        pass  # EmergencyContact may not exist
+
+    return send_mqtt_message_to_terminal(active, {"promptWaiver": {"waiverData": waiver_data}})
+
+
+def _process_waiver_signature(order_reference, signature_base64, terminal_name):
+    """
+    Shared business logic for waiver signing: look up the order, optionally
+    build the PDF and upload to S3 (skipped when WAIVER_S3_BUCKET is not
+    configured), persist the URL, and push an MQTT refresh.
+
+    Returns ``(waiver_url, None)`` on success or ``(None, JsonResponse)`` on error.
+    When S3 is not configured a local-dev sentinel URL is stored so the order is
+    still marked as signed without requiring Gotenberg or AWS credentials.
+    """
+    order = (
+        Order.objects.filter(reference=order_reference)
+        .prefetch_related("emergency_contact")
+        .first()
+    )
+    if not order:
+        return None, JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    order_item = (
+        OrderItem.objects.filter(order=order)
+        .select_related("badge__attendee")
+        .first()
+    )
+    if not order_item or not order_item.badge or not order_item.badge.attendee:
+        return None, JsonResponse({"success": False, "reason": "No attendee found on order"}, status=404)
+
+    attendee = order_item.badge.attendee
+
+    if getattr(settings, "WAIVER_S3_BUCKET", ""):
+        # S3 configured — generate PDF and upload
+        from registration.views.waiver import generate_waiver_pdf, upload_waiver_to_s3
+
+        waiver_context = {
+            "name": order.billingName or f"{attendee.firstName} {attendee.lastName}",
+            "address": order.billingAddress1 or attendee.address1 or "",
+            "city": order.billingCity or attendee.city or "",
+            "state": order.billingState or attendee.state or "",
+            "zipcode": order.billingPostal or attendee.postalCode or "",
+            "date": timezone.now().date().strftime("%B %d, %Y"),
+            "signature_data": signature_base64,
+            "ec_name": "",
+            "ec_relationship": "",
+            "ec_phone": "",
+        }
+
+        try:
+            ec = order.emergency_contact
+            waiver_context["ec_name"] = ec.name
+            waiver_context["ec_relationship"] = ec.relationship
+            waiver_context["ec_phone"] = ec.phone
+        except Exception:
+            pass
+
+        try:
+            pdf_bytes = generate_waiver_pdf(waiver_context)
+        except Exception as exc:
+            logger.error("Waiver PDF generation failed for order %s: %s", order_reference, exc)
+            return None, JsonResponse({"success": False, "reason": "PDF generation failed"}, status=500)
+
+        try:
+            waiver_url = upload_waiver_to_s3(pdf_bytes, order_reference)
+        except Exception as exc:
+            logger.error("Waiver S3 upload failed for order %s: %s", order_reference, exc)
+            return None, JsonResponse({"success": False, "reason": "Storage upload failed"}, status=500)
+    else:
+        # S3 not configured (local dev) — skip Gotenberg and S3, record a sentinel
+        logger.warning(
+            "WAIVER_S3_BUCKET not configured; recording waiver as signed for order %s "
+            "without PDF storage (local dev mode)",
+            order_reference,
+        )
+        waiver_url = f"local-dev://{order_reference}"
+
+    order.waiverPdfUrl = waiver_url
+    order.save(update_fields=["waiverPdfUrl"])
+
+    logger.info(
+        "Waiver signed and saved for order %s (url=%s)",
+        order_reference, waiver_url,
+    )
+
+    # Push a cart refresh so the admin UI updates
+    try:
+        topic = f"{mqtt.get_topic('admin', terminal_name)}/refresh"
+        mqtt.send_mqtt_message(topic, None)
+    except Exception:
+        pass
+
+    return waiver_url, None
+
+
+@csrf_exempt
+def sign_waiver(request):
+    """
+    Receive a base64-encoded PNG signature from the iOS register app, generate a
+    signed waiver PDF using Gotenberg, store it in S3, and record the URL on the
+    Order.  Authenticated by the Firebase terminal Bearer token.
+
+    Kept for backward compatibility; the primary flow now uses MQTT (the iOS app
+    publishes to the replyTopic and the admin frontend relays via relay_waiver_signature).
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "reason": "POST required"}, status=405)
+
+    # Authenticate via Firebase Bearer token (same pattern as complete_square_transaction)
+    auth_header = request.headers.get("authorization", "")
+    token = auth_header.removeprefix("Bearer ").strip()
+    if not token:
+        return JsonResponse({"success": False, "reason": "Missing authorization"}, status=401)
+
+    try:
+        terminal = Firebase.objects.get(token=token)
+    except Firebase.DoesNotExist:
+        return JsonResponse({"success": False, "reason": "Unknown token"}, status=401)
+
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"success": False, "reason": "Invalid JSON body"}, status=400)
+
+    order_reference = data.get("orderReference")
+    signature_base64 = data.get("signature")
+
+    if not order_reference or not signature_base64:
+        return JsonResponse({"success": False, "reason": "orderReference and signature are required"}, status=400)
+
+    logger.info(
+        "Waiver signature received for order %s from terminal %s (direct HTTP)",
+        order_reference, terminal.name,
+    )
+
+    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal.name)
+    if err:
+        return err
+    return JsonResponse({"success": True, "waiverUrl": waiver_url})
+
+
+@staff_member_required
+def relay_waiver_signature(request):
+    """
+    Called by the admin frontend after it receives a ``waiverSigned`` MQTT event
+    from the iOS register app.  Uses normal staff-session auth so it works in
+    local development where the iOS device cannot reach the Django server directly.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "reason": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"success": False, "reason": "Invalid JSON body"}, status=400)
+
+    order_reference = data.get("orderReference")
+    signature_base64 = data.get("signature")
+
+    if not order_reference or not signature_base64:
+        return JsonResponse({"success": False, "reason": "orderReference and signature are required"}, status=400)
+
+    active = get_terminal_from_request(request)
+    terminal_name = active.name if active else ""
+
+    logger.info(
+        "Waiver signature relay received for order %s (terminal: %s)",
+        order_reference, terminal_name,
+    )
+
+    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal_name)
+    if err:
+        return err
+    return JsonResponse({"success": True, "waiverUrl": waiver_url})
+
+
+@staff_member_required
+def clear_waiver(request):
+    """
+    Clear a signed waiver for an order: delete the PDF from S3 (adding a
+    versioned delete marker when bucket versioning is enabled) and unset
+    waiverPdfUrl so the order can be re-signed.  Uses staff-session auth.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "reason": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"success": False, "reason": "Invalid JSON body"}, status=400)
+
+    order_reference = data.get("orderReference")
+    if not order_reference:
+        return JsonResponse({"success": False, "reason": "orderReference is required"}, status=400)
+
+    order = Order.objects.filter(reference=order_reference).first()
+    if not order:
+        return JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    if order.waiverPdfUrl:
+        bucket = getattr(settings, "WAIVER_S3_BUCKET", "")
+        region = getattr(settings, "WAIVER_S3_REGION", "us-east-1")
+        prefix = getattr(settings, "WAIVER_S3_PREFIX", "waivers/")
+        if bucket and not order.waiverPdfUrl.startswith("local-dev://"):
+            try:
+                import boto3
+                boto3.client("s3", region_name=region).delete_object(
+                    Bucket=bucket, Key=f"{prefix}{order_reference}.pdf"
+                )
+            except Exception as exc:
+                logger.error("Waiver S3 delete failed for order %s: %s", order_reference, exc)
+                return JsonResponse({"success": False, "reason": "S3 delete failed"}, status=500)
+
+    logger.info("Waiver cleared for order %s", order_reference)
+    order.waiverPdfUrl = None
+    order.save(update_fields=["waiverPdfUrl"])
+
+    # Push a cart refresh so the admin UI updates
+    try:
+        active = get_terminal_from_request(request)
+        terminal_name = active.name if active else ""
+        mqtt.send_mqtt_message(f"{mqtt.get_topic('admin', terminal_name)}/refresh", None)
+    except Exception:
+        pass
+
+    return JsonResponse({"success": True})
+
+
+@staff_member_required
+def view_waiver(request):
+    """
+    Generate a short-lived (60-second) presigned S3 GetObject URL for a signed
+    waiver PDF and immediately redirect the browser to it.  The URL expires
+    before it could realistically be reused, making it effectively single-use
+    for the purposes of opening the PDF in a new tab.
+    """
+    reference = request.GET.get("reference")
+    if not reference:
+        return JsonResponse({"success": False, "reason": "reference is required"}, status=400)
+
+    order = Order.objects.filter(reference=reference).first()
+    if not order:
+        return JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    if not order.waiverPdfUrl:
+        return JsonResponse({"success": False, "reason": "No waiver on file"}, status=404)
+
+    if order.waiverPdfUrl.startswith("local-dev://"):
+        return JsonResponse({"success": False, "reason": "No PDF available in local dev mode"}, status=404)
+
+    bucket = getattr(settings, "WAIVER_S3_BUCKET", "")
+    region = getattr(settings, "WAIVER_S3_REGION", "us-east-1")
+    prefix = getattr(settings, "WAIVER_S3_PREFIX", "waivers/")
+
+    if not bucket:
+        return JsonResponse({"success": False, "reason": "S3 not configured"}, status=500)
+
+    key = f"{prefix}{reference}.pdf"
+
+    try:
+        import boto3
+        s3 = boto3.client("s3", region_name=region)
+        presigned_url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket, "Key": key},
+            ExpiresIn=60,
+        )
+    except Exception as exc:
+        logger.error("Waiver presigned URL generation failed for order %s: %s", reference, exc)
+        return JsonResponse({"success": False, "reason": "Could not generate view URL"}, status=500)
+
+    logger.info("Waiver presigned URL generated for order %s", reference)
+    return HttpResponseRedirect(presigned_url)

@@ -12,7 +12,8 @@ export type MqttTopic =
   | "refresh"
   | "scan/id"
   | "scan/shc"
-  | "transfer";
+  | "transfer"
+  | "waiverSigned";
 
 export type MqttEmitter = Emitter<Record<MqttTopic, object | null>>;
 

@@ -28,11 +28,37 @@ export class CartManager {
 
     this.mqtt.emitter.on("refresh", this.refreshCart.bind(this));
     this.mqtt.emitter.on("transfer", this.addPendingTransfer.bind(this));
+    this.mqtt.emitter.on("waiverSigned", this.handleWaiverSigned.bind(this));
   }
 
   close() {
     this.mqtt.emitter.off("refresh", this.refreshCart.bind(this));
     this.mqtt.emitter.off("transfer", this.addPendingTransfer.bind(this));
+    this.mqtt.emitter.off("waiverSigned", this.handleWaiverSigned.bind(this));
+  }
+
+  private async handleWaiverSigned(payload: unknown): Promise<void> {
+    try {
+      console.debug("waiverSigned MQTT event received", payload);
+      const { orderReference, signature } = payload as {
+        orderReference: string;
+        signature: string;
+      };
+      const result = await this.makeRequest(
+        this.urls.onsite_relay_waiver_signature,
+        {
+          method: "POST",
+          body: JSON.stringify({ orderReference, signature }),
+          headers: { "content-type": "application/json" },
+        }
+      );
+      if (!result.success) {
+        console.error("relay_waiver_signature failed", result);
+      }
+      await this.refreshCart();
+    } catch (err) {
+      console.error("handleWaiverSigned error", err);
+    }
   }
 
   private addPendingTransfer(payload: object | null) {
@@ -262,6 +288,12 @@ export class CartManager {
     return url.toString();
   }
 
+  public viewWaiverUrl(orderReference: string): string {
+    const url = new URL(this.urls.onsite_view_waiver, window.location.href);
+    url.searchParams.set("reference", orderReference);
+    return url.toString();
+  }
+
   public alreadyInCart(id: number): boolean {
     return (
       this.cartEntries()?.result?.some((badge) => badge.id === id) || false
@@ -280,6 +312,14 @@ export class CartManager {
     });
   }
 
+  public async promptWaiver(
+    orderReference: string
+  ): Promise<FallibleRequest<void>> {
+    let url = new URL(this.urls.onsite_prompt_waiver, window.location.href);
+    url.searchParams.set("reference", orderReference);
+    return await this.makeRequest(url);
+  }
+
   public async printReceipts(): Promise<FallibleRequest<void>> {
     if (!this.cartEntries()?.result) {
       return { success: true } as FallibleRequest<void>;
@@ -291,6 +331,19 @@ export class CartManager {
     );
 
     return await this.makeRequest(url);
+  }
+
+  public async clearWaiver(
+    orderReference: string
+  ): Promise<FallibleRequest<void>> {
+    const data = await this.makeRequest(this.urls.onsite_clear_waiver, {
+      method: "POST",
+      body: JSON.stringify({ orderReference }),
+      headers: { "content-type": "application/json" },
+    });
+    if (!data.success) return data;
+    await this.refreshCart();
+    return { success: true };
   }
 
   public async transfer(terminal_id: number): Promise<FallibleRequest<void>> {
@@ -359,6 +412,7 @@ export interface Badge {
   campsiteAssignment: string;
   assignedBadgeNumbers: number[];
   staff?: Staff;
+  waiverPdfUrl?: string | null;
 }
 
 export interface EffectiveLevel {

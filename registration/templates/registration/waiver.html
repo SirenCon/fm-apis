@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      margin: 1in;
+      color: #000;
+    }
+    h1 {
+      text-align: center;
+      font-size: 14pt;
+      text-transform: uppercase;
+      margin-bottom: 0.1in;
+    }
+    h2 {
+      text-align: center;
+      font-size: 11pt;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: 0.25in;
+    }
+    .field-block {
+      margin-bottom: 0.15in;
+    }
+    .field-label {
+      font-size: 9pt;
+      color: #555;
+      margin-bottom: 2px;
+    }
+    .field-value {
+      border-bottom: 1px solid #000;
+      min-height: 18px;
+      padding: 2px 4px;
+      display: block;
+      font-size: 11pt;
+    }
+    .inline-fields {
+      display: flex;
+      gap: 0.2in;
+      margin-bottom: 0.15in;
+    }
+    .inline-fields .field-block {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    p {
+      margin: 0.1in 0;
+      text-align: justify;
+    }
+    .section-num {
+      font-weight: bold;
+    }
+    .signature-section {
+      margin-top: 0.4in;
+      page-break-inside: avoid;
+    }
+    .signature-row {
+      display: flex;
+      gap: 0.5in;
+      margin-top: 0.2in;
+    }
+    .sig-block {
+      flex: 3;
+    }
+    .date-block {
+      flex: 1;
+    }
+    .sig-label {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 4px;
+    }
+    .sig-image {
+      border-bottom: 1px solid #000;
+      min-height: 60px;
+      display: block;
+      width: 100%;
+    }
+    .sig-image img {
+      max-height: 60px;
+      max-width: 100%;
+    }
+    .bold-notice {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 0.3in;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+  <h1>Release of Liability</h1>
+  <h2>READ CAREFULLY &mdash; THIS AFFECTS YOUR LEGAL RIGHTS</h2>
+
+  <p>
+    In exchange for participation in the activity of SirenCon organized by SirenCon&trade; and the Samoset
+    Council of Scouting America, of 5403 Spider Lake Rd., Rhinelander, Wisconsin, 54501 and/or use of the
+    property, facilities and services of SirenCon&trade; and the Samoset Council of Scouting America, I,
+  </p>
+
+  <div class="field-block">
+    <span class="field-label">Name</span>
+    <span class="field-value">{{ name }}</span>
+  </div>
+
+  <div class="inline-fields">
+    <div class="field-block">
+      <span class="field-label">Address</span>
+      <span class="field-value">{{ address }}</span>
+    </div>
+  </div>
+
+  <div class="inline-fields">
+    <div class="field-block">
+      <span class="field-label">City</span>
+      <span class="field-value">{{ city }}</span>
+    </div>
+    <div class="field-block">
+      <span class="field-label">State</span>
+      <span class="field-value">{{ state }}</span>
+    </div>
+    <div class="field-block">
+      <span class="field-label">ZIP Code</span>
+      <span class="field-value">{{ zipcode }}</span>
+    </div>
+  </div>
+
+  <p>
+    agree for myself and (if applicable) for the members of my family, to the following:
+  </p>
+
+  <p>
+    <span class="section-num">1. AGREEMENT TO FOLLOW DIRECTIONS.</span> I agree to observe and obey all
+    posted rules and warnings, and further agree to follow any oral instructions or directions given by
+    SirenCon&trade; and the Samoset Council of Scouting America, or the employees, representatives or
+    agents of SirenCon&trade; and the Samoset Council of Scouting America.
+  </p>
+
+  <p>
+    <span class="section-num">2. ASSUMPTION OF THE RISKS AND RELEASE.</span> I recognize that there are
+    certain inherent risks associated with the above described activity and I assume full responsibility
+    for personal injury to myself and (if applicable) my family members, and further release and discharge
+    SirenCon&trade; and the Samoset Council of Scouting America for injury, loss or damage arising out of
+    my family&rsquo;s use of or presence upon the facilities of SirenCon&trade; and the Samoset Council of
+    Scouting America, whether caused by the fault of myself, my family, SirenCon&trade; and the Samoset
+    Council of Scouting America or other third parties.
+  </p>
+
+  <p>
+    <span class="section-num">3. INDEMNIFICATION.</span> I agree to indemnify and defend SirenCon&trade;
+    and the Samoset Council of Scouting America against all claims, causes of action, damages, judgements,
+    costs, or expenses, including attorney fees and other litigation costs, which may in any way arise from
+    my or my family&rsquo;s use of or presence upon the facilities of SirenCon&trade; and the Samoset
+    Council of Scouting America.
+  </p>
+
+  <p>
+    <span class="section-num">4. FEES.</span> I agree to pay for all damages to the facilities of
+    SirenCon&trade; and the Samoset Council of Scouting America caused by any negligent, reckless, or
+    willful actions by me or my family.
+  </p>
+
+  <p>
+    <span class="section-num">5. APPLICABLE LAW.</span> Any legal or equitable claim that may arise from
+    the participation in the above shall be resolved under Wisconsin law.
+  </p>
+
+  <p>
+    <span class="section-num">6. NO DURESS.</span> I agree and acknowledge that I am under no pressure or
+    duress to sign this Agreement and that I have been given a reasonable opportunity to review it before
+    signing. I further agree and acknowledge that I am free to have my own legal counsel review this
+    Agreement if I so desire. I further agree and acknowledge that SirenCon&trade; and the Samoset Council
+    of Scouting America has offered to refund any fees I have paid to use the facilities if I choose not
+    to sign this Agreement.
+  </p>
+
+  <p>
+    <span class="section-num">7. ARM&rsquo;S LENGTH AGREEMENT.</span> This Agreement and each of its
+    terms are the product of an arm&rsquo;s length negotiation between the Parties. In the event any
+    ambiguity is found to exist in the interpretation of this Agreement, or any of its provisions, the
+    Parties, and each of them, explicitly reject the application of any legal or equitable rule of
+    interpretation which would lead to a construction either &ldquo;for&rdquo; or &ldquo;against&rdquo;
+    a particular party based upon their status as the drafter of a specific term, language, or provision
+    giving rise to such ambiguity.
+  </p>
+
+  <p>
+    <span class="section-num">8. ENFORCEABILITY.</span> The invalidity or unenforceability of any
+    provision of this Agreement, whether standing alone or as applied to a particular occurrence or
+    circumstance, shall not affect the validity or enforceability of any other provision of this Agreement
+    or any other applications of such provision, as the case may be, and such invalid or unenforceable
+    provision shall be deemed not to be a part of the Agreement.
+  </p>
+
+  <p>
+    <span class="section-num">9. EMERGENCY CONTACT.</span> In case of an emergency, please call:
+  </p>
+
+  <div class="inline-fields">
+    <div class="field-block">
+      <span class="field-label">Emergency Contact Name</span>
+      <span class="field-value">{{ ec_name }}</span>
+    </div>
+    <div class="field-block">
+      <span class="field-label">Relationship</span>
+      <span class="field-value">{{ ec_relationship }}</span>
+    </div>
+    <div class="field-block">
+      <span class="field-label">Phone</span>
+      <span class="field-value">{{ ec_phone }}</span>
+    </div>
+  </div>
+
+  <p class="bold-notice">
+    I HAVE READ THIS DOCUMENT AND UNDERSTAND IT. I FURTHER UNDERSTAND THAT BY SIGNING THIS RELEASE,
+    I VOLUNTARILY SURRENDER CERTAIN LEGAL RIGHTS.
+  </p>
+
+  <div class="signature-section">
+    <div class="signature-row">
+      <div class="sig-block">
+        <div class="sig-image">
+          {% if signature_data %}
+          <img src="data:image/png;base64,{{ signature_data }}" alt="Signature" />
+          {% endif %}
+        </div>
+        <div class="sig-label">Signature</div>
+      </div>
+      <div class="date-block">
+        <div class="field-value">{{ date }}</div>
+        <div class="sig-label">Date</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

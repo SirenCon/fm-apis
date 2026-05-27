@@ -208,3 +208,17 @@ ENVIRONMENT_NAME = "Production Server"
 ENVIRONMENT_COLOR = "#FF0000"
 ENVIRONMENT_TEXT_COLOR = "#00FF00"
 ENVIRONMENT_FLOAT = True
+
+# Digital waiver storage (AWS S3)
+# Set WAIVER_S3_BUCKET to your S3 bucket name.  Leave empty ("") to skip PDF
+# generation and S3 upload entirely — useful for local development; a sentinel
+# URL is stored on the order so it is still marked as signed.
+#
+# boto3 reads AWS credentials from the environment — set these on Linode (and
+# in your local shell when testing S3 uploads):
+#   AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxxxxxx
+#   AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#   AWS_DEFAULT_REGION=us-east-1  # optional; overridden by WAIVER_S3_REGION
+WAIVER_S3_BUCKET = ""  # e.g. "my-org-waivers"
+WAIVER_S3_REGION = "us-east-1"
+WAIVER_S3_PREFIX = "waivers/"  # key prefix / "folder" inside the bucket
