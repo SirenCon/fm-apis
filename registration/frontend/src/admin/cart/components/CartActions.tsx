@@ -106,6 +106,13 @@ export const CartActions: Component<{
   const canPromptWaiver = createMemo(
     () => allBadgesPaid() && !hasWaiver() && !!waiverOrderReference()
   );
+  const hasEmergencyContact = createMemo(
+    () => props.entries?.result?.some((badge) => badge.hasEmergencyContact) ?? false
+  );
+  const canPromptEmergencyContact = createMemo(
+    () => allBadgesPaid() && !hasEmergencyContact() && !!waiverOrderReference()
+  );
+
   const hasWaiverPdf = createMemo(() => {
     const url = props.manager.cartEntries()?.result?.find((b) => b.waiverPdfUrl)?.waiverPdfUrl;
     return !!url && !url.startsWith("local-dev://");
@@ -293,6 +300,42 @@ export const CartActions: Component<{
               <span class="icon"><i class="fas fa-trash"></i></span>
               <span>Clear Waiver</span>
             </ActionButton>
+          </Show>
+        </div>
+
+        {/* Emergency contact row */}
+        <div class="columns">
+          <Show when={canPromptEmergencyContact()}>
+            <ActionButton
+              class="is-warning"
+              disabled={false}
+              loading={loading()}
+              setLoading={setLoading}
+              action={() => props.manager.promptEmergencyContact(waiverOrderReference()!)}
+            >
+              <span class="icon">
+                <i class="fas fa-user-shield"></i>
+              </span>
+              <span>Collect Emergency Contact</span>
+            </ActionButton>
+          </Show>
+
+          <Show when={allBadgesPaid() && !hasEmergencyContact()}>
+            <div class="column is-narrow is-align-self-center">
+              <span class="tag is-warning is-medium">
+                <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>
+                <span>No emergency contact on file</span>
+              </span>
+            </div>
+          </Show>
+
+          <Show when={allBadgesPaid() && hasEmergencyContact()}>
+            <div class="column is-narrow is-align-self-center">
+              <span class="tag is-success is-medium">
+                <span class="icon"><i class="fas fa-circle-check"></i></span>
+                <span>Emergency contact on file</span>
+              </span>
+            </div>
           </Show>
         </div>
 

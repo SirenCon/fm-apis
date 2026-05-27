@@ -29,12 +29,14 @@ export class CartManager {
     this.mqtt.emitter.on("refresh", this.refreshCart.bind(this));
     this.mqtt.emitter.on("transfer", this.addPendingTransfer.bind(this));
     this.mqtt.emitter.on("waiverSigned", this.handleWaiverSigned.bind(this));
+    this.mqtt.emitter.on("emergencyContactSaved", this.handleEmergencyContactSaved.bind(this));
   }
 
   close() {
     this.mqtt.emitter.off("refresh", this.refreshCart.bind(this));
     this.mqtt.emitter.off("transfer", this.addPendingTransfer.bind(this));
     this.mqtt.emitter.off("waiverSigned", this.handleWaiverSigned.bind(this));
+    this.mqtt.emitter.off("emergencyContactSaved", this.handleEmergencyContactSaved.bind(this));
   }
 
   private async handleWaiverSigned(payload: unknown): Promise<void> {
@@ -58,6 +60,32 @@ export class CartManager {
       await this.refreshCart();
     } catch (err) {
       console.error("handleWaiverSigned error", err);
+    }
+  }
+
+  private async handleEmergencyContactSaved(payload: unknown): Promise<void> {
+    try {
+      console.debug("emergencyContactSaved MQTT event received", payload);
+      const { orderReference, name, relationship, phone } = payload as {
+        orderReference: string;
+        name: string;
+        relationship: string;
+        phone: string;
+      };
+      const result = await this.makeRequest(
+        this.urls.onsite_relay_emergency_contact,
+        {
+          method: "POST",
+          body: JSON.stringify({ orderReference, name, relationship, phone }),
+          headers: { "content-type": "application/json" },
+        }
+      );
+      if (!result.success) {
+        console.error("relay_emergency_contact failed", result);
+      }
+      await this.refreshCart();
+    } catch (err) {
+      console.error("handleEmergencyContactSaved error", err);
     }
   }
 
@@ -320,6 +348,14 @@ export class CartManager {
     return await this.makeRequest(url);
   }
 
+  public async promptEmergencyContact(
+    orderReference: string
+  ): Promise<FallibleRequest<void>> {
+    const url = new URL(this.urls.onsite_prompt_emergency_contact, window.location.href);
+    url.searchParams.set("reference", orderReference);
+    return await this.makeRequest(url);
+  }
+
   public async printReceipts(): Promise<FallibleRequest<void>> {
     if (!this.cartEntries()?.result) {
       return { success: true } as FallibleRequest<void>;
@@ -413,6 +449,7 @@ export interface Badge {
   assignedBadgeNumbers: number[];
   staff?: Staff;
   waiverPdfUrl?: string | null;
+  hasEmergencyContact?: boolean;
 }
 
 export interface EffectiveLevel {

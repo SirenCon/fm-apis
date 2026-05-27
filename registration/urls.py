@@ -357,4 +357,14 @@ urlpatterns = [
         registration.views.onsite_admin.view_waiver,
         name="onsite_view_waiver",
     ),
+    re_path(
+        r"^onsite/admin/emergency-contact/prompt/?$",
+        registration.views.onsite_admin.prompt_emergency_contact,
+        name="onsite_prompt_emergency_contact",
+    ),
+    re_path(
+        r"^onsite/admin/emergency-contact/relay/?$",
+        registration.views.onsite_admin.relay_emergency_contact,
+        name="onsite_relay_emergency_contact",
+    ),
 ]

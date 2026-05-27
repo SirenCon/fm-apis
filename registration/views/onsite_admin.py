@@ -29,6 +29,7 @@ from registration.models import (
     Badge,
     Cashdrawer,
     Discount,
+    EmergencyContact,
     Event,
     Firebase,
     OnsiteBadgeAssignment,
@@ -149,6 +150,8 @@ def onsite_admin(request):
             "shirt_sizes": [{"name": s.name, "id": s.id} for s in ShirtSizes.objects.all()],
             "urls": {
                 "onsite_prompt_waiver": reverse("registration:onsite_prompt_waiver"),
+                "onsite_prompt_emergency_contact": reverse("registration:onsite_prompt_emergency_contact"),
+                "onsite_relay_emergency_contact": reverse("registration:onsite_relay_emergency_contact"),
                 "onsite_sign_waiver": reverse("registration:onsite_sign_waiver"),
                 "onsite_relay_waiver_signature": reverse("registration:onsite_relay_waiver_signature"),
                 "onsite_clear_waiver": reverse("registration:onsite_clear_waiver"),
@@ -1054,6 +1057,7 @@ def build_result(cart):
     total_discount = 0
     result = []
     orders = set()
+    _ec_cache = {}
     for badge in badges:
         oi = badge.getOrderItems()
         level = None
@@ -1117,6 +1121,10 @@ def build_result(cart):
             "assignedBadgeNumbers": _badge_numbers_for_order(order),
             "staff": staff_data,
             "waiverPdfUrl": order.waiverPdfUrl,
+            "hasEmergencyContact": _ec_cache.setdefault(
+                order.id,
+                EmergencyContact.objects.filter(order=order).exists(),
+            ),
         }
         result.append(item)
 
@@ -1506,6 +1514,31 @@ def prompt_waiver(request):
     return send_mqtt_message_to_terminal(active, {"promptWaiver": {"waiverData": waiver_data}})
 
 
+@staff_member_required
+def prompt_emergency_contact(request):
+    """
+    Send an MQTT message to the active terminal instructing it to display the
+    emergency contact collection form for the given order.
+    """
+    order_reference = request.GET.get("reference", None)
+    if not order_reference:
+        return JsonResponse({"success": False, "reason": "Missing order reference"}, status=400)
+
+    active = get_terminal_from_request(request)
+    if not active:
+        return JsonResponse({"success": False, "reason": "No terminal associated with request"}, status=400)
+
+    order = Order.objects.filter(reference=order_reference).first()
+    if not order:
+        return JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    ec_data = {
+        "orderReference": order.reference,
+        "replyTopic": f"{mqtt.get_topic('admin', active.name)}/emergencyContactSaved",
+    }
+    return send_mqtt_message_to_terminal(active, {"promptEmergencyContact": {"emergencyContactData": ec_data}})
+
+
 def _process_waiver_signature(order_reference, signature_base64, terminal_name):
     """
     Shared business logic for waiver signing: look up the order, optionally
@@ -1676,6 +1709,42 @@ def relay_waiver_signature(request):
     if err:
         return err
     return JsonResponse({"success": True, "waiverUrl": waiver_url})
+
+
+@staff_member_required
+def relay_emergency_contact(request):
+    """
+    Called by the admin frontend after receiving an ``emergencyContactSaved``
+    MQTT event from the terminal.  Saves the emergency contact to the order
+    and triggers a cart refresh.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "reason": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"success": False, "reason": "Invalid JSON body"}, status=400)
+
+    order_reference = data.get("orderReference", "").strip()
+    name = data.get("name", "").strip()
+    relationship = data.get("relationship", "").strip()
+    phone = data.get("phone", "").strip()
+
+    if not all([order_reference, name, relationship, phone]):
+        return JsonResponse({"success": False, "reason": "Missing required fields"}, status=400)
+
+    order = Order.objects.filter(reference=order_reference).first()
+    if not order:
+        return JsonResponse({"success": False, "reason": "Order not found"}, status=404)
+
+    EmergencyContact.objects.update_or_create(
+        order=order,
+        defaults={"name": name, "relationship": relationship, "phone": phone},
+    )
+    logger.info("Emergency contact saved for order %s", order_reference)
+    admin_push_cart_refresh(request)
+    return JsonResponse({"success": True})
 
 
 @staff_member_required

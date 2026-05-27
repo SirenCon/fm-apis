@@ -69,6 +69,8 @@ export interface ApisUrls {
   onsite_prompt_waiver: string;
   onsite_sign_waiver: string;
   onsite_relay_waiver_signature: string;
+  onsite_prompt_emergency_contact: string;
+  onsite_relay_emergency_contact: string;
   onsite_clear_waiver: string;
   onsite_view_waiver: string;
   assign_badge_number: string;
