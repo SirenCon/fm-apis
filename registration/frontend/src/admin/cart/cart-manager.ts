@@ -42,15 +42,16 @@ export class CartManager {
   private async handleWaiverSigned(payload: unknown): Promise<void> {
     try {
       console.debug("waiverSigned MQTT event received", payload);
-      const { orderReference, signature } = payload as {
+      const { orderReference, signature, emailCopy = false } = payload as {
         orderReference: string;
         signature: string;
+        emailCopy?: boolean;
       };
       const result = await this.makeRequest(
         this.urls.onsite_relay_waiver_signature,
         {
           method: "POST",
-          body: JSON.stringify({ orderReference, signature }),
+          body: JSON.stringify({ orderReference, signature, emailCopy }),
           headers: { "content-type": "application/json" },
         }
       );

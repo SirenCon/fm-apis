@@ -1,0 +1,7 @@
+Thank you for checking in to {{ event_name }}!
+
+Attached you will find a copy of your signed waiver for your records.
+
+We hope you enjoy the event!
+
+- {{ event_name }} Registration Team

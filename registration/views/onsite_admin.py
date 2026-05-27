@@ -1539,7 +1539,7 @@ def prompt_emergency_contact(request):
     return send_mqtt_message_to_terminal(active, {"promptEmergencyContact": {"emergencyContactData": ec_data}})
 
 
-def _process_waiver_signature(order_reference, signature_base64, terminal_name):
+def _process_waiver_signature(order_reference, signature_base64, terminal_name, email_copy=False):
     """
     Shared business logic for waiver signing: look up the order, optionally
     build the PDF and upload to S3 (skipped when WAIVER_S3_BUCKET is not
@@ -1603,6 +1603,13 @@ def _process_waiver_signature(order_reference, signature_base64, terminal_name):
         except Exception as exc:
             logger.error("Waiver S3 upload failed for order %s: %s", order_reference, exc)
             return None, JsonResponse({"success": False, "reason": "Storage upload failed"}, status=500)
+
+        if email_copy and order.billingEmail:
+            try:
+                from registration.emails import send_waiver_email
+                send_waiver_email(order, pdf_bytes)
+            except Exception as exc:
+                logger.error("Waiver email failed for order %s: %s", order_reference, exc)
     else:
         # S3 not configured (local dev) — skip Gotenberg and S3, record a sentinel
         logger.warning(
@@ -1661,6 +1668,7 @@ def sign_waiver(request):
 
     order_reference = data.get("orderReference")
     signature_base64 = data.get("signature")
+    email_copy = bool(data.get("emailCopy", False))
 
     if not order_reference or not signature_base64:
         return JsonResponse({"success": False, "reason": "orderReference and signature are required"}, status=400)
@@ -1670,7 +1678,7 @@ def sign_waiver(request):
         order_reference, terminal.name,
     )
 
-    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal.name)
+    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal.name, email_copy=email_copy)
     if err:
         return err
     return JsonResponse({"success": True, "waiverUrl": waiver_url})
@@ -1693,6 +1701,7 @@ def relay_waiver_signature(request):
 
     order_reference = data.get("orderReference")
     signature_base64 = data.get("signature")
+    email_copy = bool(data.get("emailCopy", False))
 
     if not order_reference or not signature_base64:
         return JsonResponse({"success": False, "reason": "orderReference and signature are required"}, status=400)
@@ -1705,7 +1714,7 @@ def relay_waiver_signature(request):
         order_reference, terminal_name,
     )
 
-    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal_name)
+    waiver_url, err = _process_waiver_signature(order_reference, signature_base64, terminal_name, email_copy=email_copy)
     if err:
         return err
     return JsonResponse({"success": True, "waiverUrl": waiver_url})

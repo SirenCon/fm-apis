@@ -335,6 +335,24 @@ def send_chargeback_notice_email(order):
     )
 
 
+def send_waiver_email(order, pdf_bytes):
+    event = Event.objects.filter(default=True).first()
+    event_name = event.name if event else "SirenCon"
+    data = {"order": order, "event_name": event_name}
+    msg_txt = render_to_string("registration/emails/waiver_confirmation.txt", data)
+    msg_html = render_to_string("registration/emails/waiver_confirmation.html", data)
+    mail = EmailMultiAlternatives(
+        f"Your {event_name} Waiver",
+        msg_txt,
+        settings.APIS_DEFAULT_EMAIL,
+        [order.billingEmail],
+        reply_to=[settings.APIS_DEFAULT_EMAIL],
+    )
+    mail.attach_alternative(msg_html, "text/html")
+    mail.attach(f"waiver-{order.reference}.pdf", pdf_bytes, "application/pdf")
+    mail.send()
+
+
 def send_email(reply_address, to_address_list, subject, message, html_message, bcc=[]):
     logger.debug("Enter send_email...")
     mail_message = EmailMultiAlternatives(
