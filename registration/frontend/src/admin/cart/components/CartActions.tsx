@@ -348,7 +348,7 @@ export const CartActions: Component<{
                 name="wristBandCount"
                 class="input"
                 placeholder="# of wrist bands picked up"
-                required
+                min="0"
                 value={wristBandCount()}
                 onChange={(e) => setWristBandCount(e.currentTarget.value)}
               />
