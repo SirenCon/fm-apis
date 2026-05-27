@@ -532,7 +532,8 @@ def mark_checked_in(request):
             "message": "Order not found",
         })
 
-    order.checkedInDate = timezone.now()
+    if not order.checkedInDate:
+        order.checkedInDate = timezone.now()
     order.wristBandCountPickedUp = wristband_count
     order.cabinAssignment = cabin_numer
     order.campsiteAssignment = campsite
