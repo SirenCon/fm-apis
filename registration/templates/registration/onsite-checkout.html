@@ -66,6 +66,76 @@
         <div class="container" style="width: inherit">
           <form class="form-horizontal" role="form" data-toggle="validator">
 
+            <h3>Billing Address</h3>
+            <div class="form-group">
+              <label for="cc_firstname" class="col-sm-3 control-label">First Name</label>
+              <div class="col-sm-4">
+                <input type="text" id="cc_firstname" name="cc_firstname" class="form-control" required placeholder="First Name" />
+              </div>
+              <label for="cc_lastname" class="col-sm-2 control-label">Last Name</label>
+              <div class="col-sm-3">
+                <input type="text" id="cc_lastname" name="cc_lastname" class="form-control" required placeholder="Last Name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="billing_email" class="col-sm-3 control-label">Email</label>
+              <div class="col-sm-8">
+                <input type="email" id="billing_email" name="billing_email" class="form-control" required placeholder="Email Address" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="address1" class="col-sm-3 control-label">Address</label>
+              <div class="col-sm-8">
+                <input type="text" id="address1" name="address1" class="form-control" required placeholder="Street Address" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="address2" class="col-sm-3 control-label">Address 2</label>
+              <div class="col-sm-8">
+                <input type="text" id="address2" name="address2" class="form-control" placeholder="Apt, Suite, etc. (optional)" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="city" class="col-sm-3 control-label">City</label>
+              <div class="col-sm-4">
+                <input type="text" id="city" name="city" class="form-control" required placeholder="City" />
+              </div>
+              <label for="state" class="col-sm-2 control-label">State</label>
+              <div class="col-sm-3">
+                <input type="text" id="state" name="state" class="form-control" required placeholder="State / Province" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="country" class="col-sm-3 control-label">Country</label>
+              <div class="col-sm-4">
+                <input type="text" id="country" name="country" class="form-control" required placeholder="Country" />
+              </div>
+              <label for="postal" class="col-sm-2 control-label">Postal Code</label>
+              <div class="col-sm-3">
+                <input type="text" id="postal" name="postal" class="form-control" required placeholder="Postal Code" />
+              </div>
+            </div>
+
+            <h3>Emergency Contact</h3>
+            <div class="form-group">
+              <label for="ec_name" class="col-sm-3 control-label">Full Name</label>
+              <div class="col-sm-8">
+                <input type="text" id="ec_name" name="ec_name" class="form-control" required placeholder="Emergency Contact Name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ec_relationship" class="col-sm-3 control-label">Relationship</label>
+              <div class="col-sm-8">
+                <input type="text" id="ec_relationship" name="ec_relationship" class="form-control" required placeholder="e.g. Spouse, Parent, Friend" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ec_phone" class="col-sm-3 control-label">Phone</label>
+              <div class="col-sm-8">
+                <input type="tel" id="ec_phone" name="ec_phone" class="form-control" required placeholder="Phone Number" />
+              </div>
+            </div>
+
             <h3>Extra Donations</h3>
             <div class="col-sm-11 col-sm-offset-1" style="padding-left:0px;padding-bottom:10px;">
               {% if event.charity %}
@@ -144,7 +214,22 @@
 
           var data = {
               'onsite': true,
-              'billingData': {},
+              'billingData': {
+                  'cc_firstname': $("#cc_firstname").val(),
+                  'cc_lastname':  $("#cc_lastname").val(),
+                  'email':        $("#billing_email").val(),
+                  'address1':     $("#address1").val(),
+                  'address2':     $("#address2").val(),
+                  'city':         $("#city").val(),
+                  'state':        $("#state").val(),
+                  'country':      $("#country").val(),
+                  'postal':       $("#postal").val()
+              },
+              'emergencyContact': {
+                  'name':         $("#ec_name").val(),
+                  'relationship': $("#ec_relationship").val(),
+                  'phone':        $("#ec_phone").val()
+              },
               'charityDonation': $("#donateCharity").val(),
               'orgDonation': $("#donateOrg").val()
           };

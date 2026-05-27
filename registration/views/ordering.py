@@ -368,6 +368,14 @@ def checkout(request):
             orgDonation=porg,
             charityDonation=pcharity,
             billingType=Order.UNPAID,
+            billingName=f"{pbill.get('cc_firstname', '')} {pbill.get('cc_lastname', '')}".strip(),
+            billingAddress1=pbill.get("address1", ""),
+            billingAddress2=pbill.get("address2", ""),
+            billingCity=pbill.get("city", ""),
+            billingState=pbill.get("state", ""),
+            billingCountry=pbill.get("country", ""),
+            billingPostal=pbill.get("postal", ""),
+            billingEmail=pbill.get("email", ""),
         )
         order.status = "Onsite Pending"
         order.save()
